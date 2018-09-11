@@ -7,12 +7,14 @@ const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require('../config/database/config.json')[env];
 
-const { addStaticMethods } = require('../utils/sequelize/model-static-methods');
 const { addTransactionsBehaviour } = require('../utils/sequelize/transactions');
+const { addAbilityToInjectCrudMethods } = require('../utils/sequelize/model-crud-methods');
 
-const db = {};
 const sequelize = new Sequelize(config.database, config.username, config.password, config);
 addTransactionsBehaviour(sequelize);
+addAbilityToInjectCrudMethods(sequelize);
+
+const db = {};
 
 fs.readdirSync(__dirname)
   .filter(directoryItem => (directoryItem.length > 0 && directoryItem.indexOf('.') !== 0 && directoryItem !== basename))
@@ -43,8 +45,13 @@ setTimeout(() => {
       const methods = fs.existsSync(path.join(__dirname, `${directoryItem}/methods/index.js`))
         ? require(path.join(__dirname, `${directoryItem}/methods/index.js`))
         : null;
+
       if (methods && db[modelName]) {
         Object.assign(db[modelName], methods);
+      }
+
+      if (db[modelName]) {
+        sequelize.addCrudMethods(db[modelName]);
       }
 
       // Add hooks to models.
@@ -52,10 +59,7 @@ setTimeout(() => {
         ? require(path.join(__dirname, `${directoryItem}/hooks/index.js`))
         : null;
       if (hooks && db[modelName]) {
-        Object.keys(hooks).forEach(hookType => {
-          addStaticMethods(db[modelName]);
-          db[modelName].addHook(hookType, hooks[hookType]);
-        })
+        Object.keys(hooks).forEach(hookType => db[modelName].addHook(hookType, hooks[hookType]))
       }
     });
 });

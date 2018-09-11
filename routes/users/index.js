@@ -12,7 +12,7 @@ router.post('/signup', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return models.User.signUp(req.body)
+    return models.User.createOneWithDependencies(req.body)
     .then(user => res.status(200).json(user))
     .catch(err => res.status(400).json(err))
   }
