@@ -9,7 +9,8 @@ const DEFINITION_OBJECT = {
   lastName: { type: DataTypes.STRING, allowNull: false },
   patronymic: { type: DataTypes.STRING, allowNull: false },
   birthDate: { type: DataTypes.DATEONLY, allowNull: false },
-  sex: { type: DataTypes.BOOLEAN, allowNull: false },
+  birthPlace: { type: DataTypes.STRING, allowNull: false },
+  address: { type: DataTypes.STRING, allowNull: false },
   passportSeries: { type: DataTypes.STRING, allowNull: false },
   passportNumber: { type: DataTypes.STRING, allowNull: false },
   issuedBy: { type: DataTypes.STRING, allowNull: false },
@@ -18,10 +19,11 @@ const DEFINITION_OBJECT = {
   homePhone: { type: DataTypes.STRING, allowNull: true },
   mobilePhone: { type: DataTypes.STRING, allowNull: true },
   email: { type: DataTypes.STRING, allowNull: true },
+  job: { type: DataTypes.STRING, allowNull: true },
+  jobPosition: { type: DataTypes.STRING, allowNull: true },
   maritalStatus: { type: DataTypes.ENUM(Object.values(MARITAL_STATUS))},
   pensioner: { type: DataTypes.BOOLEAN, allowNull: false },
   salary: { type: DataTypes.INTEGER, allowNull: true },
-  liableForMilitaryService: { type: DataTypes.BOOLEAN, allowNull: false }
 };
 
 const CONFIGURATION_OBJECT = {
