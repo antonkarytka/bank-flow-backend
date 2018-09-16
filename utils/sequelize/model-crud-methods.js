@@ -6,7 +6,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
   sequelize.addCrudMethods = model => {
 
     model.fetchById = (id, options = {}, config = {}) => {
-      const strict = config.strict !== false;
+      const strict = config.strict || false;
       const scopes = config.scopes || [];
 
       return model.scope(scopes).findById(id, options)
@@ -18,7 +18,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
 
 
     model.fetchOne = (where = {}, options = {}, config = {}) => {
-      const strict = config.strict !== false;
+      const strict = config.strict || false;
       const scopes = config.scopes || [];
       options.where = where;
 
@@ -32,7 +32,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
 
     model.fetch = (where = {}, options = {}, config = {}) => {
       options.where = Object.assign({}, options.where || {}, where);
-      const strict = config.strict !== false;
+      const strict = config.strict || false;
       const scopes = config.scopes || [];
 
       return model.scope(scopes).findAll(options)
