@@ -2,6 +2,7 @@ const MODEL_NAME = 'User';
 const TABLE_NAME = 'users';
 
 const MARITAL_STATUS = {
+  DIVORCED: 'divorced',
   MARRIED: 'married',
   SINGLE: 'single'
 };
