@@ -6,9 +6,15 @@ const MARITAL_STATUS = {
   SINGLE: 'single'
 };
 
+const SEX = {
+  MALE: 'male',
+  FEMALE: 'female'
+};
+
 module.exports = {
   MODEL_NAME,
   TABLE_NAME,
 
-  MARITAL_STATUS
+  MARITAL_STATUS,
+  SEX
 };
