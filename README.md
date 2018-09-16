@@ -52,3 +52,4 @@ npm i
 ```
 npm start
 ```
+If you want to seed cities, citizenships and disabilities, you should run ```/sql_scripts/create_lookup.sql```
