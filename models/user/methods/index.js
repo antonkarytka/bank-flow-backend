@@ -16,7 +16,7 @@ const fetchUsers = (where = {}, options = {}) => {
         { model: models.Disability, as: 'disability'},
       ]
     })
-    .then(users => ({data: users, total: users.length}));
+    .then(users => ({data: users}));
   });
 };
 

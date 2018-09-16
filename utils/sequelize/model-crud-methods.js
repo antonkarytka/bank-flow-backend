@@ -37,7 +37,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
 
       return model.scope(scopes).findAll(options)
       .then(results => {
-        if ((!results || !results.length) && strict) return Promise.reject(`Error fetching ${model.name}. None matching provided criteria were found.`);
+        if ((!results || results.length === null) && strict) return Promise.reject(`Error fetching ${model.name}. None matching provided criteria were found.`);
         return results;
       })
       .catch(err => Promise.reject(`Error fetching ${model.name}: ${err}`));
