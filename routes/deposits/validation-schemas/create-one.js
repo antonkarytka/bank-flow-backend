@@ -1,8 +1,8 @@
 module.exports = {
-  depositTypeId: {
+  depositProgramId: {
     in: ['body'],
     isUUID: true,
-    errorMessage: '\'depositTypeId\' is required.'
+    errorMessage: '\'depositProgramId\' is required.'
   },
   userId: {
     in: ['body'],

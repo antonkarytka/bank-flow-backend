@@ -12,7 +12,7 @@ router.get('/', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return models.DepositType.fetchDepositTypes(req.query)
+    return models.DepositProgram.fetchDepositPrograms(req.query)
     .then(user => res.status(200).json(user))
     .catch(err => res.status(400).json(err))
   }

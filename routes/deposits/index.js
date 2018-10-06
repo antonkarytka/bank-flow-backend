@@ -13,8 +13,8 @@ router.get('/', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.Deposit.fetch(req.body)
-      .then(user => res.status(200).json(user))
-      .catch(err => res.status(400).json(err))
+    .then(user => res.status(200).json(user))
+    .catch(err => res.status(400).json(err))
   }
 ]);
 

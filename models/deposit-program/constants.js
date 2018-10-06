@@ -1,5 +1,5 @@
-const MODEL_NAME = 'DepositType';
-const TABLE_NAME = 'depositTypes';
+const MODEL_NAME = 'DepositProgram';
+const TABLE_NAME = 'deposit_programs';
 
 
 const CURRENCY = {
