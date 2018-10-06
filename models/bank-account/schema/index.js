@@ -6,8 +6,11 @@ const DEFINITION_OBJECT = {
   number: { type: DataTypes.INTEGER, allowNull: false },
   numberCode: { type: DataTypes.INTEGER, allowNull: false },
   activity: { type: DataTypes.ENUM(Object.values(ACTIVITY)), allowNull: false },
-  remainder: { type: DataTypes.INTEGER, allowNull: false },
-  name: { type: DataTypes.STRING, allowNull: false }
+  debit: { type: DataTypes.DOUBLE, allowNull: false },
+  credit: { type: DataTypes.DOUBLE, allowNull: false },
+  remainder: { type: DataTypes.DOUBLE, allowNull: false },
+  name: { type: DataTypes.STRING, allowNull: false },
+  amount: { type: DataTypes.DOUBLE, allowNull: false }
 };
 
 const CONFIGURATION_OBJECT = {

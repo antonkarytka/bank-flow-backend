@@ -3,9 +3,9 @@ const { DEFINITION_OBJECT, CONFIGURATION_OBJECT } = require('./schema');
 const establishRelations = require('./schema/relations');
 
 module.exports = sequelize => {
-  const Deposit = sequelize.define(MODEL_NAME, DEFINITION_OBJECT, CONFIGURATION_OBJECT);
+  const DepositType = sequelize.define(MODEL_NAME, DEFINITION_OBJECT, CONFIGURATION_OBJECT);
 
-  Deposit.associate = models => establishRelations(Deposit, models);
+  DepositType.associate = models => establishRelations(DepositType, models);
 
-  return Deposit;
+  return DepositType;
 };

@@ -3,13 +3,13 @@ const Promise = require('bluebird');
 const models = require('../../index');
 const { sequelize } = models;
 
-
-const createDepositWithDependencies = (content, options = {}) => {
+const fetchDepositTypes = (where = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Deposit.createOne(content, { ...options, transaction })
+    return models.DepositType.fetch(where, {...options, transaction});
   });
 };
 
+
 module.exports = {
-  createDepositWithDependencies
+  fetchDepositTypes
 };

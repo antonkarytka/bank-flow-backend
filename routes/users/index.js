@@ -26,10 +26,7 @@ router.post('/', [
 
     return models.User.createUserWithDependencies(req.body)
     .then(user => res.status(200).json(user))
-    .catch(err => {
-      console.log(err);
-      res.status(400).json(err)
-    })
+    .catch(err => res.status(400).json(err))
   }
 ]);
 
@@ -53,10 +50,7 @@ router.delete('/:userId', [
 
     return models.User.deleteUser({ id: req.params.userId })
     .then(user => res.status(200).json(user))
-    .catch(err => {
-      console.log(err);
-      res.status(400).json(err)
-    })
+    .catch(err => res.status(400).json(err))
   }
 ]);
 
