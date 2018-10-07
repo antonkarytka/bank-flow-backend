@@ -3,16 +3,45 @@ const Promise = require('bluebird');
 const models = require('../../index');
 const { sequelize } = models;
 
-const { ACTIVITY } = require('../constants');
+const { ACTIVITY, ACCOUNT_TYPE} = require('../constants');
 
 
-const createPassiveBankAccount = (content, options = {}) => {
+const createRawCashBankAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     const bankAccountContent = {
       ...content,
-      number: 1234, //TODO: Replace with real number
-      numberCode: 1234, //TODO: Replace with real number
-      activity: ACTIVITY.PASSIVE,
+      account_type: ACCOUNT_TYPE.RAW
+    };
+    return createPassiveBankAccount(bankAccountContent, { ...options, transaction});
+  });
+};
+
+const createPercentBankAccount = (content, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    const bankAccountContent = {
+      ...content,
+      account_type: ACCOUNT_TYPE.PERCENT
+    };
+    return createPassiveBankAccount(bankAccountContent, { ...options, transaction});
+  });
+};
+
+const createPassiveBankAccount = (content, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    const passiveBankAccountContent = {
+      ...content,
+      activity: ACTIVITY.PASSIVE
+    };
+    return createBankAccount(passiveBankAccountContent, { ...options, transaction});
+  });
+};
+
+const createBankAccount = (content, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    const bankAccountContent = {
+      ...content,
+      number: Math.floor(Math.random() * (1000 - 1)) + 1, //TODO: Replace with real number
+      numberCode: Math.floor(Math.random() * (1000 - 1)) + 1, //TODO: Replace with real number
       debit: 0,
       credit: 0,
       remainder: 0,
@@ -23,5 +52,6 @@ const createPassiveBankAccount = (content, options = {}) => {
 };
 
 module.exports = {
-  createPassiveBankAccount
+  createRawCashBankAccount,
+  createPercentBankAccount,
 };

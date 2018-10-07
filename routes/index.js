@@ -7,5 +7,6 @@ router.use('/cities', require('./cities'));
 router.use('/citizenships', require('./citizenships'));
 router.use('/deposit-programs', require('./deposit-programs'));
 router.use('/deposits', require('./deposits'));
+router.use('/operations', require('./operations'));
 
 module.exports = router;

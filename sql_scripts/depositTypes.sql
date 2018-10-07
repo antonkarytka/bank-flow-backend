@@ -1,4 +1,4 @@
-﻿insert into public."depositTypes"("id", "name", "type", "validThroughMin", "validThroughMax", "currency", "percent", "createdAt", "updatedAt") values
+﻿insert into public."deposit_programs"("id", "name", "type", "validThroughMin", "validThroughMax", "currency", "percent", "createdAt", "updatedAt") values
 (md5(random()::text || clock_timestamp()::text)::uuid, 'Urgent Revocable', 'urgent_revocable', 7, null, 'BYN', 6.9, clock_timestamp(), clock_timestamp()),
 (md5(random()::text || clock_timestamp()::text)::uuid, 'Urgent Revocable', 'urgent_revocable', 7, null, 'USD', 1.2, clock_timestamp(), clock_timestamp()),
 (md5(random()::text || clock_timestamp()::text)::uuid, 'Urgent Revocable', 'urgent_revocable', 7, null, 'EUR', 0.5, clock_timestamp(), clock_timestamp()),

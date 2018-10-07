@@ -7,9 +7,17 @@ const ACTIVITY = {
   PASSIVE: 'passive'
 };
 
+const ACCOUNT_TYPE ={
+  RAW: 'raw',
+  PERCENT: 'percent',
+  BANK_GROWTH: 'bank_growth',
+  CASHBOX: 'cashbox'
+};
+
 module.exports = {
   MODEL_NAME,
   TABLE_NAME,
 
-  ACTIVITY
+  ACTIVITY,
+  ACCOUNT_TYPE
 };
