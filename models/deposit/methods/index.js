@@ -9,7 +9,10 @@ const createDepositWithDependencies = (content, options = {}) => {
     return models.Deposit.createOne(content, { ...options, transaction })
     .then(deposit => {
       content.depositId = deposit.id;
-      return models.BankAccount.createPassiveBankAccount(content, { ...options, transaction });
+      return Promise.all([
+        models.BankAccount.createRawCashBankAccount(content, { ...options, transaction }),
+        models.BankAccount.createPercentBankAccount(content, { ...options, transaction }),
+      ]);
     });
   });
 };
