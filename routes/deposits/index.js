@@ -12,11 +12,12 @@ router.get('/', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return models.User.fetchUsers(req.query)
+    return models.Deposit.fetch(req.body)
     .then(user => res.status(200).json(user))
     .catch(err => res.status(400).json(err))
   }
 ]);
+
 
 router.post('/', [
   checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
@@ -24,31 +25,7 @@ router.post('/', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return models.User.createUserWithDependencies(req.body)
-    .then(user => res.status(200).json(user))
-    .catch(err => res.status(400).json(err))
-  }
-]);
-
-router.put('/:userId', [
-  checkSchema(VALIDATION_SCHEMAS.UPDATE_ONE),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
-
-    return models.User.updateUser({ id: req.params.userId }, req.body)
-    .then(user => res.status(200).json(user))
-    .catch(err => res.status(400).json(err))
-  }
-]);
-
-router.delete('/:userId', [
-  checkSchema(VALIDATION_SCHEMAS.DELETE_ONE),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
-
-    return models.User.deleteUser({ id: req.params.userId })
+    return models.Deposit.createDepositWithDependencies(req.body)
     .then(user => res.status(200).json(user))
     .catch(err => res.status(400).json(err))
   }
