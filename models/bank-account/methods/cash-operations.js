@@ -8,7 +8,7 @@ const { increaseAmount, decreaseAmount } = require('./common-operations');
 
 const putMoneyOnCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.BankAccount.fetchOne({ account_type: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
+    return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     .then(cashboxAccount => {
       return increaseAmount({ ...content, id: cashboxAccount.id }, { ...options, transaction });
     });
@@ -17,7 +17,7 @@ const putMoneyOnCashbox = (content, options = {}) => {
 
 const transferMoneyToRawAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.BankAccount.fetchOne({ account_type: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
+    return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     .then(cashboxAccount => {
       return decreaseAmount({ ...content, id: cashboxAccount.id }, { ...options, transaction })
       .then(result => {
