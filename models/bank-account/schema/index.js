@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { TABLE_NAME, ACTIVITY } = require('../constants');
+const { TABLE_NAME, ACTIVITY, ACCOUNT_TYPE } = require('../constants');
 
 const DEFINITION_OBJECT = {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
@@ -10,7 +10,8 @@ const DEFINITION_OBJECT = {
   credit: { type: DataTypes.DOUBLE, allowNull: false },
   remainder: { type: DataTypes.DOUBLE, allowNull: false },
   name: { type: DataTypes.STRING, allowNull: false },
-  amount: { type: DataTypes.DOUBLE, allowNull: false }
+  amount: { type: DataTypes.DOUBLE, allowNull: false },
+  accountType: { type: DataTypes.ENUM(Object.values(ACCOUNT_TYPE)), allowNull: false}
 };
 
 const CONFIGURATION_OBJECT = {
