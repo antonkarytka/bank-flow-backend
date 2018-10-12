@@ -52,4 +52,15 @@ npm i
 ```
 npm start
 ```
-If you want to seed cities, citizenships and disabilities, you should run ```/sql_scripts/create_lookup.sql```
+
+## Seeder
+Run required _.sql_ files to seed tables mentioned below.
+
+Cities, citizenships and disabilities:
+```
+/seeder/sql-scripts/create_lookup.sql
+```
+Deposit types:
+```
+/seeder/sql-scripts/deposit_types.sql
+```
