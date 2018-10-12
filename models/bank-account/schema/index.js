@@ -11,7 +11,7 @@ const DEFINITION_OBJECT = {
   remainder: { type: DataTypes.DOUBLE, allowNull: false },
   name: { type: DataTypes.STRING, allowNull: false },
   amount: { type: DataTypes.DOUBLE, allowNull: false },
-  account_type: { type: DataTypes.ENUM(Object.values(ACCOUNT_TYPE)), allowNull: false}
+  accountType: { type: DataTypes.ENUM(Object.values(ACCOUNT_TYPE)), allowNull: false}
 };
 
 const CONFIGURATION_OBJECT = {

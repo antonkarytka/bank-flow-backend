@@ -13,7 +13,7 @@ router.get('/', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.User.fetchUsers(req.query)
-    .then(user => res.status(200).json(user))
+    .then(users => res.status(200).json(users))
     .catch(err => res.status(400).json(err))
   }
 ]);
@@ -49,7 +49,7 @@ router.delete('/:userId', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.User.deleteUser({ id: req.params.userId })
-    .then(user => res.status(200).json(user))
+    .then(res => res.status(200).json(res))
     .catch(err => res.status(400).json(err))
   }
 ]);

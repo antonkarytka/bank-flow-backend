@@ -5,7 +5,7 @@ const { sequelize } = models;
 
 const fetchCitizenships = (where = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Citizenship.fetch(where, {...options, transaction});
+    return models.Citizenship.fetch(where, { ...options, transaction });
   });
 };
 
