@@ -1,19 +1,27 @@
 const models = require('../../index');
 const { sequelize } = models;
 
+const { generateBankAccountNumber } = require('./helpers');
+
 const createBankAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    const bankAccountContent = {
-      ...content,
-      number: Math.floor(Math.random() * (1000 - 1)) + 1, //TODO: Replace with real number
-      numberCode: Math.floor(Math.random() * (1000 - 1)) + 1, //TODO: Replace with real number
-      debit: 0,
-      credit: 0,
-      remainder: 0,
-      name: 'tempName', //TODO: Replace with real name
-    };
+    return models.User.fetchById(
+      content.userId,
+      {
+        attributes: ['firstName', 'lastName', 'patronymic'],
+        transaction
+      },
+      { strict: true }
+    )
+    .then(({ firstName, lastName, patronymic }) => {
+      const bankAccountContent = {
+        ...content,
+        number: generateBankAccountNumber(),
+        name: `${firstName.toUpperCase()}_${lastName.toUpperCase()}_${patronymic.toUpperCase()}`
+      };
 
-    return models.BankAccount.createOne(bankAccountContent, { ...options, transaction});
+      return models.BankAccount.createOne(bankAccountContent, { ...options, transaction });
+    })
   });
 };
 
