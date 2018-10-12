@@ -1,17 +1,16 @@
 const Promise = require('bluebird');
 
-const models = require('../../index');
+const models = require('../../../index');
 const { sequelize } = models;
 
-const { ACCOUNT_TYPE } = require('../constants');
-const { increaseAmount, decreaseAmount } = require('./common-operations');
+const { ACCOUNT_TYPE } = require('../../constants');
+const { AMOUNT_ACTION: { INCREASE, DECREASE } } = require('../common-operations/constants');
+const { manipulateBankAccountAmount } = require('../common-operations');
 
 const putMoneyOnCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
-    .then(cashboxAccount => {
-      return increaseAmount({ ...content, id: cashboxAccount.id }, { ...options, transaction });
-    });
+    .then(cashboxAccount => manipulateBankAccountAmount(INCREASE, { ...content, id: cashboxAccount.id }, { ...options, transaction }));
   });
 };
 
@@ -19,10 +18,8 @@ const transferMoneyToRawAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     .then(cashboxAccount => {
-      return decreaseAmount({ ...content, id: cashboxAccount.id }, { ...options, transaction })
-      .then(result => {
-        return increaseAmount({ ...content, id: content.id}, { ...options, transaction });
-      });
+      return manipulateBankAccountAmount(DECREASE, { ...content, id: cashboxAccount.id }, { ...options, transaction })
+      .then(() => manipulateBankAccountAmount(INCREASE, { ...content, id: content.id}, { ...options, transaction }));
     });
   });
 };

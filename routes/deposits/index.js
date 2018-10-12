@@ -13,7 +13,7 @@ router.get('/', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.Deposit.fetch(req.body)
-    .then(user => res.status(200).json(user))
+    .then(deposits => res.status(200).json(deposits))
     .catch(err => res.status(400).json(err))
   }
 ]);
@@ -26,7 +26,7 @@ router.post('/', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.Deposit.createDepositWithDependencies(req.body)
-    .then(user => res.status(200).json(user))
+    .then(deposit => res.status(200).json(deposit))
     .catch(err => res.status(400).json(err))
   }
 ]);

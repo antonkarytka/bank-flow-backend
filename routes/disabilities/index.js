@@ -13,7 +13,7 @@ router.get('/', [
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
     return models.Disability.fetchDisabilities(req.query)
-    .then(user => res.status(200).json(user))
+    .then(disabilities => res.status(200).json(disabilities))
     .catch(err => res.status(400).json(err))
   }
 ]);

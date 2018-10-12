@@ -7,7 +7,7 @@ const ACTIVITY = {
   PASSIVE: 'passive'
 };
 
-const ACCOUNT_TYPE ={
+const ACCOUNT_TYPE = {
   RAW: 'raw',
   PERCENT: 'percent',
   BANK_GROWTH: 'bank_growth',
