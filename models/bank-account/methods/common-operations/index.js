@@ -12,9 +12,12 @@ const manipulateBankAccountAmount = (action, content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchById(content.id, { ...options, transaction })
     .then(bankAccount => {
-      const updatedContent = {
-        amount: bankAccount.amount + content.amount
-      };
+      const updatedContent = {};
+      if (action === AMOUNT_ACTION.INCREASE) {
+        updatedContent.amount = bankAccount.amount + content.amount
+      } else if (action === AMOUNT_ACTION.DECREASE) {
+        updatedContent.amount = bankAccount.amount - content.amount
+      }
       updateBankAccountContent({ content, updated: updatedContent, bankAccount, amountAction: action });
 
       return models.BankAccount.updateOne({ id: content.id }, updatedContent, { ...options, transaction });
