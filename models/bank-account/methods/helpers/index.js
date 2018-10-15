@@ -10,8 +10,12 @@ const splitByThreeCharacters = string => string.match(/.{1,3}/g);
 const generateControlKey = ({ bankCode, individualAccountNumber, weightCoefficients }) => {
   const temporaryAccountNumber = splitByThreeCharacters(`${bankCode}${individualAccountNumber}0`);
 
-  const multiplied = temporaryAccountNumber.map((accountNumberPart, index) => accountNumberPart * weightCoefficients[index]);
-  const lastDigitsSum = multiplied.reduce((sum, number) => sum + (number % 10), 0);
+  const lastDigitsSum = temporaryAccountNumber.reduce((sum, accountNumberPart, index) => {
+    const multiplied = accountNumberPart * weightCoefficients[index];
+    const lastMultipliedDigit = multiplied % 10;
+
+    return sum + lastMultipliedDigit;
+  }, 0);
 
   return (lastDigitsSum * 3) % 10;
 };
