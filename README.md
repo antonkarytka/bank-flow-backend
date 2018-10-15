@@ -54,13 +54,7 @@ npm start
 ```
 
 ## Seeder
-Run required _.sql_ files to seed tables mentioned below.
-
-Cities, citizenships and disabilities:
+Seed the database via running:
 ```
-/seeder/sql-scripts/create_lookup.sql
-```
-Deposit types:
-```
-/seeder/sql-scripts/deposit_types.sql
+npm run seed
 ```
