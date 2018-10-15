@@ -11,8 +11,8 @@ const DEFINITION_OBJECT = {
    * 5-12: individual account number
    * 13: control key (generated depending on account number and weight coefficients using 0 for control key)
    */
-  number: { type: DataTypes.INTEGER, allowNull: false },
-  numberCode: { type: DataTypes.INTEGER, allowNull: false, defaultValue: BALANCE_ACCOUNT_NUMBER },
+  number: { type: DataTypes.STRING, allowNull: false },
+  numberCode: { type: DataTypes.STRING, allowNull: false, defaultValue: BALANCE_ACCOUNT_NUMBER },
   activity: { type: DataTypes.ENUM(Object.values(ACTIVITY)), allowNull: false },
   debit: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
   credit: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
