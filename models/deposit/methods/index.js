@@ -7,8 +7,8 @@ const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
   ACTIVITY: BANK_ACCOUNT_ACTIVITY
 } = require('../../bank-account/constants');
+const { DAYS_IN_YEAR } = require('./constants');
 
-const DAYS_IN_YEAR = 365;
 
 const createDepositWithDependencies = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {

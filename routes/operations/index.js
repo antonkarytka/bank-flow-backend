@@ -3,10 +3,17 @@ const router = express.Router();
 const { checkSchema, validationResult } = require('express-validator/check');
 
 const VALIDATION_SCHEMAS = require('./validation-schemas');
+const {
+  putMoneyOnCashbox,
+  transferMoneyToRawAccount,
+  useMoneyInsideBank,
+  addInterestCharge,
+  getAllPercentCharges,
+  getMoneyFromCashbox,
+  setFinishDepositState,
+  getAllRawAmount
+} = require('../../models/bank-account/methods/cash-operations');
 
-const { putMoneyOnCashbox, transferMoneyToRawAccount, useMoneyInsideBank,
-  addInterestCharge, getAllPercentCharges, getMoneyFromCashbox,
-  setFinishDepositState, getAllRawAmount} = require("../../models/bank-account/methods/cash-operations");
 
 // Parameters:
 // amount
