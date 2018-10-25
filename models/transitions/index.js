@@ -3,9 +3,9 @@ const { DEFINITION_OBJECT, CONFIGURATION_OBJECT } = require('./schema');
 const establishRelations = require('./schema/relations');
 
 module.exports = sequelize => {
-  const Disability = sequelize.define(MODEL_NAME, DEFINITION_OBJECT, CONFIGURATION_OBJECT);
+  const Transition = sequelize.define(MODEL_NAME, DEFINITION_OBJECT, CONFIGURATION_OBJECT);
 
-  Disability.associate = models => establishRelations(Disability, models);
+  Transition.associate = models => establishRelations(Transition, models);
 
-  return Disability;
+  return Transition;
 };
