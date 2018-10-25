@@ -13,6 +13,7 @@ const {
   setFinishDepositState,
   getAllRawAmount
 } = require('../../models/bank-account/methods/cash-operations');
+const { createTransitionWithDependencies } = require('../../models/transitions/methods');
 
 
 // Parameters:
@@ -38,7 +39,7 @@ router.post('/transfer-money-to-raw-account', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return transferMoneyToRawAccount(req.body)
+    return createTransitionWithDependencies(transferMoneyToRawAccount, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -53,7 +54,7 @@ router.post('/use-money-inside-bank', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return useMoneyInsideBank(req.body)
+    return createTransitionWithDependencies(useMoneyInsideBank, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -65,7 +66,7 @@ router.post('/add-interest-charge', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return addInterestCharge(req.body)
+    return createTransitionWithDependencies(addInterestCharge, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -77,7 +78,7 @@ router.post('/get-all-percent-charges', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return getAllPercentCharges(req.body)
+    return createTransitionWithDependencies(getAllPercentCharges, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -101,7 +102,7 @@ router.post('/set-finish-deposit-state', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return setFinishDepositState(req.body)
+    return createTransitionWithDependencies(setFinishDepositState, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -113,7 +114,7 @@ router.post('/get-all-raw-amount', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
 
-    return getAllRawAmount(req.body)
+    return createTransitionWithDependencies(getAllRawAmount, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
