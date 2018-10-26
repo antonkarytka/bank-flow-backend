@@ -8,6 +8,7 @@ const DEFINITION_OBJECT = {
 
 const CONFIGURATION_OBJECT = {
   tableName: TABLE_NAME,
+  timestamps: false,
   indexes: [
     {
       fields: ['grade']
