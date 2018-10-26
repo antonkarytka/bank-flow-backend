@@ -18,7 +18,7 @@ const DEFINITION_OBJECT = {
   credit: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
   remainder: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
   name: { type: DataTypes.STRING, allowNull: false },
-  amount: { type: DataTypes.DOUBLE, allowNull: false },
+  amount: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
   accountType: { type: DataTypes.ENUM(Object.values(ACCOUNT_TYPE)), allowNull: false}
 };
 

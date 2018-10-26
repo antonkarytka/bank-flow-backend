@@ -1,10 +1,20 @@
-const fs = require('fs');
+const Promise = require('bluebird');
+
 const models = require('../models');
+const mocks = require('./data');
 
 return models.sequelize.sync({ force: true })
 .then(() => {
-  const sql = fs.readFileSync(`${__dirname}/sql-scripts/create_lookups.sql`);
-  return models.sequelize.query(sql.toString());
+  return Promise.each([
+    mocks.bankAccounts,
+    mocks.cities,
+    mocks.citizenships,
+    mocks.depositPrograms,
+    mocks.disabilities
+  ], ({ data, model }) => {
+    data = Object.values(data);
+    return Promise.map(data, item => model.upsertOne({ id: item.id }, item))
+  })
 })
 .then(() => console.log('Successfully seeded the database!'))
 .catch(err => console.log(`Error occurred while seeding the databse: ${err}`));
