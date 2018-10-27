@@ -165,7 +165,7 @@ const setFinishDepositState = (content, options = {}) => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
       return Promise.join(
-        models.BankAccount.fetchOne({accountType: ACCOUNT_TYPE.BANK_GROWTH}, { ...options, transaction }),
+        models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
         models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
       )
       .spread((bankGrowthAccount, rawAccount) => {

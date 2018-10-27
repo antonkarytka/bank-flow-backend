@@ -23,10 +23,5 @@ module.exports = {
     in: ['body'],
     isFloat: true,
     errorMessage: '\'amount\' field is required.'
-  },
-  contractNumber: {
-    in: ['body'],
-    isString: true,
-    errorMessage: 'The \'contractNumber\' field is required'
   }
 };
