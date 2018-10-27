@@ -119,7 +119,6 @@ const addAbilityToInjectCrudMethods = sequelize => {
       return sequelize.continueTransaction(options, transaction => {
         return model.fetchOne(where, { ...options, transaction }, { strict: false })
         .then(record => {
-          console.log(record);
           if (record) return model.updateOne(where, content, options);
           return model.createOne(content, options);
         })

@@ -13,7 +13,7 @@ return models.sequelize.sync({ force: true })
     mocks.disabilities
   ], ({ data, model }) => {
     data = Object.values(data);
-    return Promise.map(data, item => model.upsertOne({ id: item.id }, item))
+    return Promise.each(data, item => model.upsertOne({ id: item.id }, item))
   })
 })
 .then(() => console.log('Successfully seeded the database!'))
