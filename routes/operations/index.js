@@ -13,13 +13,11 @@ const {
   setFinishDepositState,
   getAllRawAmount
 } = require('../../models/bank-account/methods/cash-operations');
-const { createTransitionWithDependencies } = require('../../models/transitions/methods');
+const { createTransitionWithDependencies } = require('../../models/transition/methods');
 
 
-// Parameters:
-// amount
 router.post('/put-money-on-cashbox', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.PUT_MONEY_ON_CASHBOX),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -30,11 +28,8 @@ router.post('/put-money-on-cashbox', [
   }
 ]);
 
-// Parameters:
-// amount
-// accountId
 router.post('/transfer-money-to-raw-account', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.TRANSFER_MONEY_TO_RAW_ACCOUNT),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -45,11 +40,8 @@ router.post('/transfer-money-to-raw-account', [
   }
 ]);
 
-// Parameters:
-// amount
-// accountId
 router.post('/use-money-inside-bank', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.USE_MONEY_INSIDE_BANK),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -61,7 +53,7 @@ router.post('/use-money-inside-bank', [
 ]);
 
 router.post('/add-interest-charge', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.ADD_INTEREST_CHARGE),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -73,7 +65,7 @@ router.post('/add-interest-charge', [
 ]);
 
 router.post('/get-all-percent-charges', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.GET_ALL_PERCENT_CHARGES),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -85,7 +77,7 @@ router.post('/get-all-percent-charges', [
 ]);
 
 router.post('/get-money-from-cashbox', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.GET_MONEY_FROM_CASHBOX),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -97,7 +89,7 @@ router.post('/get-money-from-cashbox', [
 ]);
 
 router.post('/set-finish-deposit-state', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.SET_FINISH_DEPOSIT_STATE),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
@@ -109,7 +101,7 @@ router.post('/set-finish-deposit-state', [
 ]);
 
 router.post('/get-all-raw-amount', [
-  checkSchema(VALIDATION_SCHEMAS.CREATE_ONE),
+  checkSchema(VALIDATION_SCHEMAS.GET_ALL_RAW_AMOUNT),
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.mapped() });
