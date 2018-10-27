@@ -12,7 +12,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
       return model.scope(scopes).findById(id, options)
       .catch(err => new Error(`Error fetching ${model.name} by id.\n${err}`))
       .tap(result => {
-        if ((result === undefined) && strict) return Promise.reject(`Error fetching ${model.name} by id. Requested record not found.`);
+        if (!result && strict) return Promise.reject(`Error fetching ${model.name} by id. Requested record not found.`);
       });
     };
 
@@ -25,7 +25,7 @@ const addAbilityToInjectCrudMethods = sequelize => {
       return model.scope(scopes).findOne(options)
       .catch(err => new Error(`Error fetching ${model.name}.\n${err}`))
       .tap(result => {
-        if ((result === undefined) && strict) return Promise.reject(`Error fetching ${model.name}. Requested record not found.`);
+        if (!result && strict) return Promise.reject(`Error fetching ${model.name}. Requested record not found.`);
       });
     };
 
