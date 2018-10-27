@@ -22,4 +22,20 @@ app.use((req, res, next) => {
 app.use(router);
 
 
+process.on('uncaughtException', err => {
+  console.log('--- Uncaught Exception ---');
+  console.log('Error: ', err);
+  console.log('History:', err.history);
+  console.log('Stack:', err.stack);
+});
+
+process.on('unhandledRejection', err => {
+  console.log('--- Unhandled Rejection ---');
+  console.log('Error: ', err);
+  console.log('SQL: ', err.sql);
+  console.log('History: ', err.history);
+  console.log('Stack: ', err.stack);
+});
+
+
 module.exports = app;
