@@ -7,7 +7,7 @@ const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
   ACTIVITY: BANK_ACCOUNT_ACTIVITY
 } = require('../../bank-account/constants');
-const { DAYS_IN_YEAR } = require('./constants');
+const { DAYS_IN_YEAR } = require('../../bank-account/methods/common-operations/constants');
 
 
 const createDepositWithDependencies = (content, options = {}) => {

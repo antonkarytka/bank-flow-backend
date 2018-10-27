@@ -4,7 +4,7 @@ const models = require('../../../index');
 const { sequelize } = models;
 
 const { ACCOUNT_TYPE } = require('../../constants');
-const { AMOUNT_ACTION: { INCREASE, DECREASE } } = require('../common-operations/constants');
+const { AMOUNT_ACTION: { INCREASE, DECREASE }, DAYS_IN_YEAR } = require('../common-operations/constants');
 const { manipulateBankAccountAmount } = require('../common-operations');
 
 
@@ -24,21 +24,28 @@ const transferMoneyToRawAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
-      models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.RAW, depositId: content.id }, { ...options, transaction })
+      models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.RAW, depositId: content.id }, { ...options, transaction }),
+      models.Deposit.fetchById(content.id, { ...options, include: [{model: models.DepositProgram, as: 'depositProgram'}], transaction })
     )
-    .spread((cashboxAccount, rawAccount) => {
-      return Promise.all([
-        manipulateBankAccountAmount(
-          DECREASE,
-          { ...content, amount: cashboxAccount.amount, id: cashboxAccount.id },
-          { ...options, transaction }
-        ),
-        manipulateBankAccountAmount(
-          INCREASE,
-          { ...content, amount: cashboxAccount.amount, id: rawAccount.id },
-          { ...options, transaction }
-        )
-      ])
+    .spread((cashboxAccount, rawAccount, deposit) => {
+      return models.Deposit.updateOne({ id: content.id },
+        { amount: deposit.amount + cashboxAccount.amount,
+          dailyPercentChargeAmount: (deposit.amount + cashboxAccount.amount) * deposit.depositProgram.percent / 100 / DAYS_IN_YEAR
+        }, { ...options, transaction})
+      .tap(deposit => {
+        return Promise.all([
+          manipulateBankAccountAmount(
+            DECREASE,
+            { ...content, amount: cashboxAccount.amount, id: cashboxAccount.id },
+            { ...options, transaction }
+          ),
+          manipulateBankAccountAmount(
+            INCREASE,
+            { ...content, amount: cashboxAccount.amount, id: rawAccount.id },
+            { ...options, transaction }
+          )
+        ])
+      })
       .then(() => ({
         senderBankAccountId: cashboxAccount.id,
         receiverBankAccountId: rawAccount.id,
