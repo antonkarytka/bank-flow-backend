@@ -26,18 +26,25 @@ const transferMoneyToRawAccount = (content, options = {}) => {
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.RAW, depositId: content.id }, { ...options, transaction })
     )
-    .spread((cashboxAccount, rawAccount) => Promise.all([
-      manipulateBankAccountAmount(
-        DECREASE,
-        { ...content, amount: cashboxAccount.amount, id: cashboxAccount.id },
-        { ...options, transaction }
-      ),
-      manipulateBankAccountAmount(
-        INCREASE,
-        { ...content, amount: cashboxAccount.amount, id: rawAccount.id },
-        { ...options, transaction }
-      )
-    ]));
+    .spread((cashboxAccount, rawAccount) => {
+      return Promise.all([
+        manipulateBankAccountAmount(
+          DECREASE,
+          { ...content, amount: cashboxAccount.amount, id: cashboxAccount.id },
+          { ...options, transaction }
+        ),
+        manipulateBankAccountAmount(
+          INCREASE,
+          { ...content, amount: cashboxAccount.amount, id: rawAccount.id },
+          { ...options, transaction }
+        )
+      ])
+      .then(() => ({
+        senderBankAccountId: cashboxAccount.id,
+        receiverBankAccountId: rawAccount.id,
+        amount: cashboxAccount.amount
+      }))
+    })
   });
 };
 
@@ -48,18 +55,25 @@ const useMoneyInsideBank = (content, options = {}) => {
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
       models.BankAccount.fetchOne({ depositId: content.id, accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
     )
-    .spread((bankGrowthAccount, rawAccount) => Promise.all([
-      manipulateBankAccountAmount(
-        INCREASE,
-        { ...content, amount: rawAccount.amount, id: bankGrowthAccount.id },
-        { ...options, transaction }
-      ),
-      manipulateBankAccountAmount(
-        DECREASE,
-        { ...content, amount: rawAccount.amount, id: rawAccount.id },
-        { ...options, transaction }
-      )
-    ]));
+    .spread((bankGrowthAccount, rawAccount) => {
+      return Promise.all([
+        manipulateBankAccountAmount(
+          INCREASE,
+          { ...content, amount: rawAccount.amount, id: bankGrowthAccount.id },
+          { ...options, transaction }
+        ),
+        manipulateBankAccountAmount(
+          DECREASE,
+          { ...content, amount: rawAccount.amount, id: rawAccount.id },
+          { ...options, transaction }
+        )
+      ])
+      .then(() => ({
+        senderBankAccountId: rawAccount.id,
+        receiverBankAccountId: bankGrowthAccount.id,
+        amount: rawAccount.amount
+      }))
+    });
   });
 };
 
@@ -67,20 +81,31 @@ const useMoneyInsideBank = (content, options = {}) => {
 const addInterestCharge = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
-    .tap(deposit => Promise.all([
-      models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction })
-      .then(percentAccount => manipulateBankAccountAmount(
-        INCREASE,
-        { ...content, amount: deposit.dailyPercentChargeAmount, id: percentAccount.id },
-        { ...options, transaction }
-      )),
-      models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction })
-      .then(bankAccount=> manipulateBankAccountAmount(
-        DECREASE,
-        { ...content, amount: deposit.dailyPercentChargeAmount, id: bankAccount.id },
-        { ...options, transaction }
-      ))
-    ]));
+    .then(deposit => {
+      return Promise.join(
+        models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
+        models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction })
+      )
+      .spread((percentAccount, bankAccount) => {
+        return Promise.all([
+          manipulateBankAccountAmount(
+            INCREASE,
+            { ...content, amount: deposit.dailyPercentChargeAmount, id: percentAccount.id },
+            { ...options, transaction }
+          ),
+          manipulateBankAccountAmount(
+            DECREASE,
+            { ...content, amount: deposit.dailyPercentChargeAmount, id: bankAccount.id },
+            { ...options, transaction }
+          )
+        ])
+        .then(() => ({
+          senderBankAccountId: bankAccount.id,
+          receiverBankAccountId: percentAccount.id,
+          amount: deposit.dailyPercentChargeAmount
+        }))
+      })
+    });
   });
 };
 
@@ -88,24 +113,30 @@ const addInterestCharge = (content, options = {}) => {
 const getAllPercentCharges = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
-    .tap(deposit => {
-      return models.BankAccount.fetchOne(
-        { depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT },
-        { ...options, transaction }
-      )
-      .then(percentAccount => Promise.all([
-        manipulateBankAccountAmount(
-          DECREASE,
-          { ...content, amount: percentAccount.amount, id: percentAccount.id },
-          { ...options, transaction }
-        ),
+    .then(deposit => {
+      return Promise.join(
+        models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
         models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
-        .then(cashboxAccount => manipulateBankAccountAmount(
-          INCREASE,
-          { ...content, amount: percentAccount.amount, id: cashboxAccount.id },
-          { ...options, transaction }
-        ))
-      ]))
+      )
+      .spread((percentAccount, cashboxAccount) => {
+        return Promise.all([
+          manipulateBankAccountAmount(
+            DECREASE,
+            { ...content, amount: percentAccount.amount, id: percentAccount.id },
+            { ...options, transaction }
+          ),
+          manipulateBankAccountAmount(
+            INCREASE,
+            { ...content, amount: percentAccount.amount, id: cashboxAccount.id },
+            { ...options, transaction }
+          )
+        ])
+        .then(() => ({
+          senderBankAccountId: percentAccount.id,
+          receiverBankAccountId: cashboxAccount.id,
+          amount: percentAccount.amount
+        }))
+      })
     });
   });
 };
@@ -125,20 +156,31 @@ const getMoneyFromCashbox = (content, options = {}) => {
 const setFinishDepositState = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
-    .tap(deposit => Promise.all([
-      models.BankAccount.fetchOne({accountType: ACCOUNT_TYPE.BANK_GROWTH}, { ...options, transaction })
-      .then(bankGrowthAccount => {
-        return manipulateBankAccountAmount(DECREASE,
-          { ...content, amount: deposit.amount, id: bankGrowthAccount.id },
-          { ...options, transaction });
-      }),
-      models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
-      .then(rawAccount => {
-        return manipulateBankAccountAmount(INCREASE,
-          { ...content, amount: deposit.amount, id: rawAccount.id },
-          { ...options, transaction });
+    .then(deposit => {
+      return Promise.join(
+        models.BankAccount.fetchOne({accountType: ACCOUNT_TYPE.BANK_GROWTH}, { ...options, transaction }),
+        models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
+      )
+      .spread((bankGrowthAccount, rawAccount) => {
+        return Promise.all([
+          manipulateBankAccountAmount(
+            DECREASE,
+            { ...content, amount: deposit.amount, id: bankGrowthAccount.id },
+            { ...options, transaction }
+          ),
+          manipulateBankAccountAmount(
+            INCREASE,
+            { ...content, amount: deposit.amount, id: rawAccount.id },
+            { ...options, transaction }
+          )
+        ])
+        .then(() => ({
+          senderBankAccountId: bankGrowthAccount.id,
+          receiverBankAccountId: rawAccount.id,
+          amount: deposit.amount
+        }))
       })
-    ]));
+    });
   });
 };
 
@@ -146,20 +188,31 @@ const setFinishDepositState = (content, options = {}) => {
 const getAllRawAmount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
-    .tap(deposit => Promise.all([
-      models.BankAccount.fetchOne({accountType: ACCOUNT_TYPE.CASHBOX}, { ...options, transaction })
-      .then(cashboxAccount => manipulateBankAccountAmount(
-        INCREASE,
-        { ...content, amount: deposit.amount, id: cashboxAccount.id },
-        { ...options, transaction }
-      )),
-      models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
-      .then(rawAccount => manipulateBankAccountAmount(
-        DECREASE,
-        { ...content, amount: deposit.amount, id: rawAccount.id },
-        { ...options, transaction }
-      ))
-    ]));
+    .then(deposit => {
+      return Promise.join(
+        models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
+        models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
+      )
+      .spread((cashboxAccount, rawAccount) => {
+        return Promise.all([
+          manipulateBankAccountAmount(
+            INCREASE,
+            { ...content, amount: deposit.amount, id: cashboxAccount.id },
+            { ...options, transaction }
+          ),
+          manipulateBankAccountAmount(
+            DECREASE,
+            { ...content, amount: deposit.amount, id: rawAccount.id },
+            { ...options, transaction }
+          )
+        ])
+        .then(() => ({
+          senderBankAccountId: rawAccount.id,
+          receiverBankAccountId: cashboxAccount.id,
+          amount: deposit.amount
+        }))
+      })
+    });
   });
 };
 
