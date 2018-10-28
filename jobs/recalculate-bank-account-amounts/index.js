@@ -28,7 +28,10 @@ const recalculateBankAccountAmounts = () => schedule.scheduleJob(MIDNIGHT, () =>
             required: true,
             where: {
               endsAt: {
-                [Op.gt]: currentDate
+                [Op.or]: [
+                  { [Op.eq]: null },
+                  { [Op.gt]: currentDate }
+                ]
               }
             }
           }]
