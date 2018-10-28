@@ -19,13 +19,19 @@ const recalculateBankAccountAmounts = () => schedule.scheduleJob(MIDNIGHT, () =>
         include: [{
           model: models.Deposit,
           as: 'deposit',
-          attributes: ['dailyPercentChargeAmount', 'depositProgramEndsAt'],
+          attributes: ['dailyPercentChargeAmount'],
           required: true,
-          where: {
-            depositProgramEndsAt: {
-              [Op.gt]: currentDate
+          include: [{
+            model: models.DepositProgram,
+            as: 'depositProgram',
+            attributes: ['endsAt'],
+            required: true,
+            where: {
+              endsAt: {
+                [Op.gt]: currentDate
+              }
             }
-          }
+          }]
         }],
         transaction
       }

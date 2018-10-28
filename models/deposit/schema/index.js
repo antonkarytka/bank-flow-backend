@@ -5,9 +5,7 @@ const DEFINITION_OBJECT = {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
   amount: { type: DataTypes.DOUBLE, allowNull: false },
   contractNumber: { type: DataTypes.STRING, allowNull: false },
-  dailyPercentChargeAmount: { type: DataTypes.DOUBLE, allowNull: false },
-  depositProgramCreatedAt: { type: DataTypes.DATEONLY, allowNull: false },
-  depositProgramEndsAt: { type: DataTypes.DATEONLY, allowNull: false },
+  dailyPercentChargeAmount: { type: DataTypes.DOUBLE, allowNull: false }
 };
 
 const CONFIGURATION_OBJECT = {
