@@ -17,7 +17,22 @@ const createTransitionWithDependencies = (updateBankAccounts, content = {}, opti
 
 const fetchTransitions = (where = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Transition.fetch(where, { ...options, transaction });
+    return models.Transition.fetch(where, {
+      ...options,
+      include: [
+        {
+          model: models.BankAccount,
+          as: 'receiverBankAccount',
+          required: true
+        },
+        {
+          model: models.BankAccount,
+          as: 'senderBankAccount',
+          required: true
+        }
+      ],
+      transaction
+    });
   });
 };
 
