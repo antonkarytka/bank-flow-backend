@@ -2,10 +2,12 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
+const { STATUS } = require('../../../deposit/constants');
 
 const { ACCOUNT_TYPE } = require('../../constants');
 const { AMOUNT_ACTION: { INCREASE, DECREASE }, DAYS_IN_YEAR } = require('../common-operations/constants');
 const { manipulateBankAccountAmount } = require('../common-operations');
+const { validateDepositStatus } = require('./helpers');
 
 
 const putMoneyOnCashbox = (content, options = {}) => {
@@ -28,11 +30,15 @@ const transferMoneyToRawAccount = (content, options = {}) => {
       models.Deposit.fetchById(content.id, { ...options, include: [{model: models.DepositProgram, as: 'depositProgram'}], transaction })
     )
     .spread((cashboxAccount, rawAccount, deposit) => {
-      return models.Deposit.updateOne({ id: content.id },
-        { amount: deposit.amount + cashboxAccount.amount,
+      return models.Deposit.updateOne(
+        { id: content.id },
+        {
+          amount: deposit.amount + cashboxAccount.amount,
           dailyPercentChargeAmount: (deposit.amount + cashboxAccount.amount) * deposit.depositProgram.percent / 100 / DAYS_IN_YEAR
-        }, { ...options, transaction})
-      .tap(deposit => {
+        },
+        { ...options, transaction }
+      )
+      .then(() => {
         return Promise.all([
           manipulateBankAccountAmount(
             DECREASE,
