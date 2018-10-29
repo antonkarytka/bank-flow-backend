@@ -2,12 +2,12 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { STATUS } = require('../../../deposit/constants');
+const { OPERATION } = require('../../../deposit/constants');
 
 const { ACCOUNT_TYPE } = require('../../constants');
 const { AMOUNT_ACTION: { INCREASE, DECREASE }, DAYS_IN_YEAR } = require('../common-operations/constants');
 const { manipulateBankAccountAmount } = require('../common-operations');
-const { validateDepositStatus } = require('./helpers');
+const { validateOperationPossibility } = require('./helpers');
 
 
 const putMoneyOnCashbox = (content, options = {}) => {
@@ -17,18 +17,27 @@ const putMoneyOnCashbox = (content, options = {}) => {
       INCREASE,
       { ...content, id: cashboxAccount.id },
       { ...options, transaction }
-    ));
+    ))
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.PUT_MONEY_ON_CASHBOX }, { transaction }))
   });
 };
 
 
 const transferMoneyToRawAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return Promise.join(
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.PUT_MONEY_ON_CASHBOX],
+        errorMessage: `Unable to transfer money to raw account. Latest deposit's operation must be: ${OPERATION.PUT_MONEY_ON_CASHBOX}.`
+      },
+      { transaction }
+    )
+    .then(() => Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.RAW, depositId: content.id }, { ...options, transaction }),
       models.Deposit.fetchById(content.id, { ...options, include: [{model: models.DepositProgram, as: 'depositProgram'}], transaction })
-    )
+    ))
     .spread((cashboxAccount, rawAccount, deposit) => {
       return models.Deposit.updateOne(
         { id: content.id },
@@ -58,16 +67,25 @@ const transferMoneyToRawAccount = (content, options = {}) => {
         amount: cashboxAccount.amount
       }))
     })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.TRANSFER_MONEY_TO_RAW_ACCOUNT }, { transaction }))
   });
 };
 
 
 const useMoneyInsideBank = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return Promise.join(
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.TRANSFER_MONEY_TO_RAW_ACCOUNT],
+        errorMessage: `Unable to use money inside bank. Latest deposit's operation must be: ${OPERATION.TRANSFER_MONEY_TO_RAW_ACCOUNT}.`
+      },
+      { transaction }
+    )
+    .then(() => Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
       models.BankAccount.fetchOne({ depositId: content.id, accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
-    )
+    ))
     .spread((bankGrowthAccount, rawAccount) => {
       return Promise.all([
         manipulateBankAccountAmount(
@@ -86,14 +104,22 @@ const useMoneyInsideBank = (content, options = {}) => {
         receiverBankAccountId: bankGrowthAccount.id,
         amount: rawAccount.amount
       }))
-    });
+    })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.USE_MONEY_INSIDE_BANK }, { transaction }))
   });
 };
 
 
 const addInterestCharge = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Deposit.fetchById(content.id, { ...options, transaction })
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.USE_MONEY_INSIDE_BANK],
+        errorMessage: `Unable to add interest charge. Latest deposit's operation must be: ${OPERATION.USE_MONEY_INSIDE_BANK}.`
+      },
+      { transaction }
+    )
     .then(deposit => {
       return Promise.join(
         models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
@@ -118,14 +144,22 @@ const addInterestCharge = (content, options = {}) => {
           amount: deposit.dailyPercentChargeAmount
         }))
       })
-    });
+    })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.ADD_INTEREST_CHARGE }, { transaction }))
   });
 };
 
 
 const getAllPercentCharges = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Deposit.fetchById(content.id, { ...options, transaction })
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.ADD_INTEREST_CHARGE],
+        errorMessage: `Unable to get all percent charges. Latest deposit's operation must be: ${OPERATION.ADD_INTEREST_CHARGE}.`
+      },
+      { transaction }
+    )
     .then(deposit => {
       return Promise.join(
         models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
@@ -150,7 +184,8 @@ const getAllPercentCharges = (content, options = {}) => {
           amount: percentAccount.amount
         }))
       })
-    });
+    })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.GET_ALL_PERCENT_CHARGES }, { transaction }))
   });
 };
 
@@ -168,7 +203,14 @@ const getMoneyFromCashbox = (content, options = {}) => {
 
 const setFinishDepositState = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Deposit.fetchById(content.id, { ...options, transaction })
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.GET_MONEY_FROM_CASHBOX],
+        errorMessage: `Unable to set finish deposit state. Latest deposit's operation must be: ${OPERATION.GET_MONEY_FROM_CASHBOX}.`
+      },
+      { transaction }
+    )
     .then(deposit => {
       return Promise.join(
         models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
@@ -193,14 +235,22 @@ const setFinishDepositState = (content, options = {}) => {
           amount: deposit.amount
         }))
       })
-    });
+    })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.SET_FINISH_DEPOSIT_STATE }, { transaction }))
   });
 };
 
 
 const getAllRawAmount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.Deposit.fetchById(content.id, { ...options, transaction })
+    return validateOperationPossibility(
+      {
+        depositId: content.id,
+        allowedLatestOperations: [OPERATION.SET_FINISH_DEPOSIT_STATE],
+        errorMessage: `Unable to get all raw amount. Latest deposit's operation must be: ${OPERATION.SET_FINISH_DEPOSIT_STATE}.`
+      },
+      { transaction }
+    )
     .then(deposit => {
       return Promise.join(
         models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
@@ -225,7 +275,8 @@ const getAllRawAmount = (content, options = {}) => {
           amount: deposit.amount
         }))
       })
-    });
+    })
+    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.GET_ALL_RAW_AMOUNT }, { transaction }))
   });
 };
 

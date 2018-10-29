@@ -1,15 +1,17 @@
 const models = require('../../../../index');
 
-const validateDepositStatus = ({ depositId, allowedStatuses = [], errorMessage }, { transaction } = {}) => {
-  return models.Deposit.fetchById(depositId, { attributes: ['status'], transaction }, { strict: true })
-  .then(({ status }) => {
-    if (!allowedStatuses.includes(status)) {
-      return Promise.reject(errorMessage)
+const validateOperationPossibility = ({ depositId, allowedLatestOperations = [], errorMessage }, { transaction } = {}) => {
+  return models.Deposit.fetchById(depositId, { transaction }, { strict: true })
+  .then(deposit => {
+    if (!allowedLatestOperations.includes(deposit.latestOperation)) {
+      return Promise.reject(`${errorMessage} Current latest operation: ${deposit.latestOperation}.`);
     }
+
+    return deposit;
   })
 };
 
 
 module.exports = {
-  validateDepositStatus
+  validateOperationPossibility
 };
