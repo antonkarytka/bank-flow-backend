@@ -18,26 +18,17 @@ const putMoneyOnCashbox = (content, options = {}) => {
       { ...content, id: cashboxAccount.id },
       { ...options, transaction }
     ))
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.PUT_MONEY_ON_CASHBOX }, { transaction }))
   });
 };
 
 
 const transferMoneyToRawAccount = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return validateOperationPossibility(
-      {
-        depositId: content.id,
-        allowedLatestOperations: [OPERATION.PUT_MONEY_ON_CASHBOX],
-        errorMessage: `Unable to transfer money to raw account. Latest deposit's operation must be: ${OPERATION.PUT_MONEY_ON_CASHBOX}.`
-      },
-      { transaction }
-    )
-    .then(() => Promise.join(
+    return Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.RAW, depositId: content.id }, { ...options, transaction }),
       models.Deposit.fetchById(content.id, { ...options, include: [{model: models.DepositProgram, as: 'depositProgram'}], transaction })
-    ))
+    )
     .spread((cashboxAccount, rawAccount, deposit) => {
       return models.Deposit.updateOne(
         { id: content.id },
@@ -67,7 +58,7 @@ const transferMoneyToRawAccount = (content, options = {}) => {
         amount: cashboxAccount.amount
       }))
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.TRANSFER_MONEY_TO_RAW_ACCOUNT }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.TRANSFER_MONEY_TO_RAW_ACCOUNT }, { transaction }))
   });
 };
 
@@ -105,7 +96,7 @@ const useMoneyInsideBank = (content, options = {}) => {
         amount: rawAccount.amount
       }))
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.USE_MONEY_INSIDE_BANK }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.USE_MONEY_INSIDE_BANK }, { transaction }))
   });
 };
 
@@ -145,7 +136,7 @@ const addInterestCharge = (content, options = {}) => {
         }))
       })
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.ADD_INTEREST_CHARGE }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.ADD_INTEREST_CHARGE }, { transaction }))
   });
 };
 
@@ -185,7 +176,7 @@ const getAllPercentCharges = (content, options = {}) => {
         }))
       })
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.GET_ALL_PERCENT_CHARGES }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.GET_ALL_PERCENT_CHARGES }, { transaction }))
   });
 };
 
@@ -206,8 +197,8 @@ const setFinishDepositState = (content, options = {}) => {
     return validateOperationPossibility(
       {
         depositId: content.id,
-        allowedLatestOperations: [OPERATION.GET_MONEY_FROM_CASHBOX],
-        errorMessage: `Unable to set finish deposit state. Latest deposit's operation must be: ${OPERATION.GET_MONEY_FROM_CASHBOX}.`
+        allowedLatestOperations: [OPERATION.GET_ALL_PERCENT_CHARGES],
+        errorMessage: `Unable to set finish deposit state. Latest deposit's operation must be: ${OPERATION.GET_ALL_PERCENT_CHARGES}.`
       },
       { transaction }
     )
@@ -236,7 +227,7 @@ const setFinishDepositState = (content, options = {}) => {
         }))
       })
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.SET_FINISH_DEPOSIT_STATE }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.SET_FINISH_DEPOSIT_STATE }, { transaction }))
   });
 };
 
@@ -276,7 +267,7 @@ const getAllRawAmount = (content, options = {}) => {
         }))
       })
     })
-    .tap(() => models.Deposit.updateOne(content.id, { latestOperation: OPERATION.GET_ALL_RAW_AMOUNT }, { transaction }))
+    .tap(() => models.Deposit.updateOne({ id: content.id }, { latestOperation: OPERATION.GET_ALL_RAW_AMOUNT }, { transaction }))
   });
 };
 
