@@ -6,7 +6,7 @@ const DEFINITION_OBJECT = {
   amount: { type: DataTypes.DOUBLE, allowNull: false },
   contractNumber: { type: DataTypes.STRING, allowNull: false },
   dailyPercentChargeAmount: { type: DataTypes.DOUBLE, allowNull: false },
-  isFinished: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false }
+  active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
 };
 
 const CONFIGURATION_OBJECT = {

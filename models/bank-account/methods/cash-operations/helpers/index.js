@@ -1,8 +1,4 @@
-const checkDepositState = (deposit) => {
-  return deposit.isFinished
-    ? Promise.reject('Sorry, but this deposit has been finished')
-    : Promise.resolve(deposit);
-};
+const checkDepositState = ({ active }) => !active && Promise.reject('Deposit is no longer available.');
 
 
 module.exports = {

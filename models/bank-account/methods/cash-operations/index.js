@@ -65,7 +65,8 @@ const useMoneyInsideBank = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
-      return checkDepositState(deposit).then(() => {
+      return checkDepositState(deposit)
+      .then(() => {
         return Promise.join(
           models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
           models.BankAccount.fetchOne({ depositId: content.id, accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
@@ -99,7 +100,8 @@ const addInterestCharge = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
-      return checkDepositState(deposit).then(() => {
+      return checkDepositState(deposit)
+      .then(() => {
         return Promise.join(
           models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
           models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction })
@@ -173,7 +175,8 @@ const setFinishDepositState = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
-      return checkDepositState(deposit).then(() => {
+      return checkDepositState(deposit)
+      .then(() => {
         return Promise.join(
           models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
           models.BankAccount.fetchOne({ depositId: deposit.id , accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
@@ -197,7 +200,7 @@ const setFinishDepositState = (content, options = {}) => {
             amount: deposit.amount
           }))
         })
-        .tap(() => models.Deposit.updateOne({ id: deposit.id }, { isFinished: true }, { transaction }));
+        .tap(() => models.Deposit.updateOne({ id: deposit.id }, { active: false }, { transaction }));
       });
     });
   });
