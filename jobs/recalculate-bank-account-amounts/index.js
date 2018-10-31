@@ -46,7 +46,7 @@ const recalculateBankAccountAmounts = () => schedule.scheduleJob(MIDNIGHT, () =>
       } = bankAccount;
       const updatedAmount = currentAmount + dailyPercentChargeAmount;
 
-      return models.BankAccount.update(
+      return models.BankAccount.updateOne(
         { id: bankAccount.id },
         { amount: updatedAmount },
         { transaction }
