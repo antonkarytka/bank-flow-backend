@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+router.use('/bank-accounts', require('./bank-accounts'));
 router.use('/cities', require('./cities'));
 router.use('/citizenships', require('./citizenships'));
 router.use('/deposits', require('./deposits'));
