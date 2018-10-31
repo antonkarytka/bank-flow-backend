@@ -9,7 +9,7 @@ const VALIDATION_SCHEMAS = require('./validation-schemas');
 router.get('/', [
   validateRequestSchema(VALIDATION_SCHEMAS.FETCH),
   (req, res) => {
-    return models.Deposit.fetch(req.body)
+    return models.Deposit.fetchDeposits(req.query)
     .then(deposits => res.status(200).json(deposits))
     .catch(err => res.status(400).json(err))
   }

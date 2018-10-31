@@ -42,6 +42,34 @@ const createDepositWithDependencies = (content, options = {}) => {
   });
 };
 
+
+const fetchDeposits = (where, options = {}) => {
+  return models.Deposit.fetch(
+    where,
+    {
+      include: [{
+        model: models.BankAccount,
+        as: 'bankAccounts',
+        include: [
+          {
+            model: models.Transition,
+            as: 'receivedTransitions',
+            required: false
+          },
+          {
+            model: models.Transition,
+            as: 'sentTransitions',
+            required: false
+          }
+        ]
+      }],
+      ...options
+    },
+  )
+};
+
+
 module.exports = {
-  createDepositWithDependencies
+  createDepositWithDependencies,
+  fetchDeposits
 };
