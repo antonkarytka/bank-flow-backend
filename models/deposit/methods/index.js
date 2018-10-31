@@ -47,10 +47,16 @@ const fetchDeposits = (where, options = {}) => {
   return models.Deposit.fetch(
     where,
     {
-      include: [{
-        model: models.BankAccount,
-        as: 'bankAccounts'
-      }],
+      include: [
+        {
+          model: models.DepositProgram,
+          as: 'depositProgram'
+        },
+        {
+          model: models.BankAccount,
+          as: 'bankAccounts'
+        }
+      ],
       ...options
     },
   )
@@ -61,22 +67,28 @@ const fetchDepositById = (where = {}, options = {}) => {
   return models.Deposit.fetchById(
     where.depositId,
     {
-      include: [{
-        model: models.BankAccount,
-        as: 'bankAccounts',
-        include: [
-          {
-            model: models.Transition,
-            as: 'receivedTransitions',
-            required: false
-          },
-          {
-            model: models.Transition,
-            as: 'sentTransitions',
-            required: false
-          }
-        ]
-      }],
+      include: [
+        {
+          model: models.DepositProgram,
+          as: 'depositProgram'
+        },
+        {
+          model: models.BankAccount,
+          as: 'bankAccounts',
+          include: [
+            {
+              model: models.Transition,
+              as: 'receivedTransitions',
+              required: false
+            },
+            {
+              model: models.Transition,
+              as: 'sentTransitions',
+              required: false
+            }
+          ]
+        }
+      ],
       ...options
     },
   )
