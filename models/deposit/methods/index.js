@@ -49,6 +49,20 @@ const fetchDeposits = (where, options = {}) => {
     {
       include: [{
         model: models.BankAccount,
+        as: 'bankAccounts'
+      }],
+      ...options
+    },
+  )
+};
+
+
+const fetchDepositById = (where = {}, options = {}) => {
+  return models.Deposit.fetchById(
+    where.depositId,
+    {
+      include: [{
+        model: models.BankAccount,
         as: 'bankAccounts',
         include: [
           {
@@ -71,5 +85,6 @@ const fetchDeposits = (where, options = {}) => {
 
 module.exports = {
   createDepositWithDependencies,
-  fetchDeposits
+  fetchDeposits,
+  fetchDepositById
 };

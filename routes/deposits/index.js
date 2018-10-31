@@ -16,6 +16,16 @@ router.get('/', [
 ]);
 
 
+router.get('/:depositId', [
+  validateRequestSchema(VALIDATION_SCHEMAS.FETCH_BY_ID),
+  (req, res) => {
+    return models.Deposit.fetchDepositById({ ...req.params, ...req.query })
+    .then(deposit => res.status(200).json(deposit))
+    .catch(err => res.status(400).json(err))
+  }
+]);
+
+
 router.post('/', [
   validateRequestSchema(VALIDATION_SCHEMAS.CREATE_ONE),
   (req, res) => {
