@@ -79,12 +79,36 @@ const fetchDepositById = (where = {}, options = {}) => {
             {
               model: models.Transition,
               as: 'receivedTransitions',
-              required: false
+              required: false,
+              include: [
+                {
+                  model: models.BankAccount,
+                  as: 'receiverBankAccount',
+                  required: true
+                },
+                {
+                  model: models.BankAccount,
+                  as: 'senderBankAccount',
+                  required: true
+                }
+              ]
             },
             {
               model: models.Transition,
               as: 'sentTransitions',
-              required: false
+              required: false,
+              include: [
+                {
+                  model: models.BankAccount,
+                  as: 'receiverBankAccount',
+                  required: true
+                },
+                {
+                  model: models.BankAccount,
+                  as: 'senderBankAccount',
+                  required: true
+                }
+              ]
             }
           ]
         }
