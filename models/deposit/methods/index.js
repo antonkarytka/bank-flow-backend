@@ -32,7 +32,7 @@ const createDepositWithDependencies = (content, options = {}) => {
               { ...options, transaction }
             ),
             models.BankAccount.createBankAccount(
-              { ...content, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.PERCENT },
+              { ...content, amount: 0, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.PERCENT },
               { ...options, transaction }
             ),
           ]);
