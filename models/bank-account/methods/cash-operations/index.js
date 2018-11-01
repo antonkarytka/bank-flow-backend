@@ -9,7 +9,7 @@ const { manipulateBankAccountAmount } = require('../common-operations');
 const { checkDepositState } = require('./helpers');
 
 
-const putMoneyOnCashbox = (content, options = {}) => {
+const addMoneyToCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     .then(cashboxAccount => manipulateBankAccountAmount(
@@ -21,7 +21,7 @@ const putMoneyOnCashbox = (content, options = {}) => {
 };
 
 
-const transferMoneyToRawAccount = (content, options = {}) => {
+const transferToRawFromCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
@@ -61,7 +61,7 @@ const transferMoneyToRawAccount = (content, options = {}) => {
 };
 
 
-const useMoneyInsideBank = (content, options = {}) => {
+const transferToDevelopmentFundFromRaw = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
@@ -96,7 +96,7 @@ const useMoneyInsideBank = (content, options = {}) => {
 };
 
 
-const addInterestCharge = (content, options = {}) => {
+const transferToPercentageFromDevelopmentFund = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
@@ -131,7 +131,7 @@ const addInterestCharge = (content, options = {}) => {
 };
 
 
-const getAllPercentCharges = (content, options = {}) => {
+const transferAllToCashboxFromPercentage = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
       models.BankAccount.fetchOne({ depositId: content.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
@@ -141,7 +141,7 @@ const getAllPercentCharges = (content, options = {}) => {
       return Promise.all([
         manipulateBankAccountAmount(
           DECREASE,
-          { ...content, amount: percentAccount.amount, id: percentAccount.id },
+          { amount: percentAccount.amount, id: percentAccount.id },
           { ...options, transaction }
         ),
         manipulateBankAccountAmount(
@@ -160,7 +160,7 @@ const getAllPercentCharges = (content, options = {}) => {
 };
 
 
-const getMoneyFromCashbox = (content, options = {}) => {
+const withdrawMoneyFromCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     .then(cashboxAccount => manipulateBankAccountAmount(
@@ -171,7 +171,7 @@ const getMoneyFromCashbox = (content, options = {}) => {
   });
 };
 
-const setFinishDepositState = (content, options = {}) => {
+const transferAllToRawFromDevelopmentFund = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.Deposit.fetchById(content.id, { ...options, transaction })
     .then(deposit => {
@@ -207,7 +207,7 @@ const setFinishDepositState = (content, options = {}) => {
 };
 
 
-const getAllRawAmount = (content, options = {}) => {
+const transferAllToRawFromCashbox = (content, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
@@ -237,12 +237,12 @@ const getAllRawAmount = (content, options = {}) => {
 
 
 module.exports = {
-  putMoneyOnCashbox,
-  transferMoneyToRawAccount,
-  useMoneyInsideBank,
-  addInterestCharge,
-  getAllPercentCharges,
-  getMoneyFromCashbox,
-  setFinishDepositState,
-  getAllRawAmount
+  addMoneyToCashbox,
+  transferToRawFromCashbox,
+  transferToDevelopmentFundFromRaw,
+  transferToPercentageFromDevelopmentFund,
+  transferAllToCashboxFromPercentage,
+  withdrawMoneyFromCashbox,
+  transferAllToRawFromDevelopmentFund,
+  transferAllToRawFromCashbox
 };
