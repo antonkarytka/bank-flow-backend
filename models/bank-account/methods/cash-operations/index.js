@@ -71,7 +71,7 @@ const transferToDevelopmentFundFromRaw = ({ depositId }, options = {}) => {
       return checkDepositState(deposit)
       .then(() => {
         return Promise.join(
-          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
+          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
           models.BankAccount.fetchOne({ depositId, accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
         )
         .spread((bankGrowthAccount, rawAccount) => {
@@ -106,8 +106,8 @@ const transferToPercentageFromDevelopmentFund = ({ depositId }, options = {}) =>
       return checkDepositState(deposit)
       .then(() => {
         return Promise.join(
-          models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
-          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction })
+          models.BankAccount.fetchOne({ depositId: deposit.id, accountType: ACCOUNT_TYPE.PERCENTAGE }, { ...options, transaction }),
+          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction })
         )
         .spread((percentAccount, bankAccount) => {
           return Promise.all([
@@ -137,7 +137,7 @@ const transferToPercentageFromDevelopmentFund = ({ depositId }, options = {}) =>
 const transferAllToCashboxFromPercentage = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
-      models.BankAccount.fetchOne({ depositId, accountType: ACCOUNT_TYPE.PERCENT }, { ...options, transaction }),
+      models.BankAccount.fetchOne({ depositId, accountType: ACCOUNT_TYPE.PERCENTAGE }, { ...options, transaction }),
       models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
     )
     .spread((percentAccount, cashboxAccount) => {
@@ -181,7 +181,7 @@ const transferAllToRawFromDevelopmentFund = ({ depositId }, options = {}) => {
       return checkDepositState(deposit)
       .then(() => {
         return Promise.join(
-          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.BANK_GROWTH }, { ...options, transaction }),
+          models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
           models.BankAccount.fetchOne({ depositId, accountType: ACCOUNT_TYPE.RAW }, { ...options, transaction })
         )
         .spread((bankGrowthAccount, rawAccount) => {
