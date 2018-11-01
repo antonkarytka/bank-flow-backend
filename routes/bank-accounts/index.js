@@ -13,7 +13,7 @@ const {
   transferAllToCashboxFromPercentage,
   withdrawMoneyFromCashbox,
   transferAllToRawFromDevelopmentFund,
-  transferAllToRawFromCashbox
+  transferAllToCashboxFromRaw
 } = require('../../models/bank-account/methods/cash-operations');
 const { createTransitionWithDependencies } = require('../../models/transition/methods');
 
@@ -73,9 +73,8 @@ router.post('/percentage/transfer-all-to-cashbox', [
 ]);
 
 router.post('/cashbox/withdraw-money', [
-  validateRequestSchema(VALIDATION_SCHEMAS.WITHDRAW_MONEY_FROM_CASHBOX),
   (req, res) => {
-    return withdrawMoneyFromCashbox(req.body)
+    return withdrawMoneyFromCashbox()
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }
@@ -93,7 +92,7 @@ router.post('/development-fund/transfer-all-to-raw', [
 router.post('/raw/transfer-all-to-cashbox', [
   validateRequestSchema(VALIDATION_SCHEMAS.TRANSFER_ALL_TO_CASHBOX_FROM_RAW),
   (req, res) => {
-    return createTransitionWithDependencies(transferAllToRawFromCashbox, req.body)
+    return createTransitionWithDependencies(transferAllToCashboxFromRaw, req.body)
     .then(result => res.status(200).json(result))
     .catch(err => res.status(400).json(err))
   }

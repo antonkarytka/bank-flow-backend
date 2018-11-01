@@ -1,7 +1,7 @@
 module.exports = {
-  id: {
+  depositId: {
     in: ['body'],
     isUUID: true,
-    errorMessage: 'Deposit Id should be an UUID.'
+    errorMessage: 'depositId is required in body and must be a UUID.'
   }
 };

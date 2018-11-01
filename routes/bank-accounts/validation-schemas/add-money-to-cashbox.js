@@ -2,6 +2,6 @@ module.exports = {
   amount: {
     in: ['body'],
     isFloat: true,
-    errorMessage: 'Amount should be a float number.'
+    errorMessage: 'amount is required in body and must be a float number.'
   }
 };
