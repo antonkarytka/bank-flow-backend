@@ -1,5 +1,5 @@
-const MODEL_NAME = 'Deposit';
-const TABLE_NAME = 'deposits';
+const MODEL_NAME = 'Credit';
+const TABLE_NAME = 'credits';
 
 module.exports = {
   MODEL_NAME,
