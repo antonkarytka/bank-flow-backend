@@ -1,4 +1,5 @@
 module.exports = (Deposit, models) => {
-  Deposit.hasMany(models.BankAccount, { as: 'bankAccounts', foreignKey: { name: 'depositId', allowNull: false } });
+  Deposit.belongsTo(models.BankAccount, { as: 'rawBankAccount', foreignKey: { name: 'rawBankAccountId', allowNull: false } });
+  Deposit.belongsTo(models.BankAccount, { as: 'percentageBankAccount', foreignKey: { name: 'percentageBankAccountId', allowNull: false } });
   Deposit.belongsTo(models.DepositProgram, { as: 'depositProgram', foreignKey: { name: 'depositProgramId', allowNull: false } });
 };

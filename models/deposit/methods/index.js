@@ -9,36 +9,39 @@ const {
   ACTIVITY: BANK_ACCOUNT_ACTIVITY
 } = require('../../bank-account/constants');
 const { DAYS_IN_YEAR } = require('../../bank-account/methods/common-operations/constants');
+const { RELATED_TRANSITIONS } = require('./constants');
 
 
-const createDepositWithDependencies = (content, options = {}) => {
+const createDepositWithDependencies = ({ amount, depositProgramId, userId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.DepositProgram.fetchById(content.depositProgramId, { ...options, transaction })
-    .then(depositProgram => {
-      return generateContractNumber({ transaction })
-      .then(contractNumber => {
-        content = {
-          ...content,
-          contractNumber,
-          dailyPercentChargeAmount: Number(content.amount) * depositProgram.percent / 100 / DAYS_IN_YEAR
-        };
+    return Promise.join(
+      models.BankAccount.createBankAccount(
+        { amount, userId, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.RAW },
+        { ...options, transaction }
+      ),
+      models.BankAccount.createBankAccount(
+        { amount: 0, userId, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.PERCENTAGE },
+        { ...options, transaction }
+      )
+    )
+    .spread((rawAccount, percentageAccount) => {
+      return models.DepositProgram.fetchById(depositProgramId, { ...options, transaction })
+      .then(depositProgram => {
+        return generateContractNumber({ transaction })
+        .then(contractNumber => {
+          const depositContent = {
+            amount,
+            contractNumber,
+            dailyPercentChargeAmount: Number(amount) * depositProgram.percent / 100 / DAYS_IN_YEAR,
+            depositProgramId: depositProgram.id,
+            rawBankAccountId: rawAccount.id,
+            percentageBankAccountId: percentageAccount.id
+          };
 
-        return models.Deposit.createOne(content, { ...options, transaction })
-        .tap(deposit => {
-          content.depositId = deposit.id;
-          return Promise.all([
-            models.BankAccount.createBankAccount(
-              { ...content, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.RAW },
-              { ...options, transaction }
-            ),
-            models.BankAccount.createBankAccount(
-              { ...content, amount: 0, activity: BANK_ACCOUNT_ACTIVITY.PASSIVE, accountType: BANK_ACCOUNT_TYPE.PERCENT },
-              { ...options, transaction }
-            ),
-          ]);
-        });
-      })
-    });
+          return models.Deposit.createOne(depositContent, { ...options, transaction })
+        })
+      });
+    })
   });
 };
 
@@ -50,11 +53,18 @@ const fetchDeposits = (where, options = {}) => {
       include: [
         {
           model: models.DepositProgram,
-          as: 'depositProgram'
+          as: 'depositProgram',
+          required: true
         },
         {
           model: models.BankAccount,
-          as: 'bankAccounts'
+          as: 'rawBankAccount',
+          required: true
+        },
+        {
+          model: models.BankAccount,
+          as: 'percentageBankAccount',
+          required: true
         }
       ],
       ...options
@@ -70,47 +80,20 @@ const fetchDepositById = (where = {}, options = {}) => {
       include: [
         {
           model: models.DepositProgram,
-          as: 'depositProgram'
+          as: 'depositProgram',
+          required: true
         },
         {
           model: models.BankAccount,
-          as: 'bankAccounts',
-          include: [
-            {
-              model: models.Transition,
-              as: 'receivedTransitions',
-              required: false,
-              include: [
-                {
-                  model: models.BankAccount,
-                  as: 'receiverBankAccount',
-                  required: true
-                },
-                {
-                  model: models.BankAccount,
-                  as: 'senderBankAccount',
-                  required: true
-                }
-              ]
-            },
-            {
-              model: models.Transition,
-              as: 'sentTransitions',
-              required: false,
-              include: [
-                {
-                  model: models.BankAccount,
-                  as: 'receiverBankAccount',
-                  required: true
-                },
-                {
-                  model: models.BankAccount,
-                  as: 'senderBankAccount',
-                  required: true
-                }
-              ]
-            }
-          ]
+          as: 'rawBankAccount',
+          required: true,
+          include: RELATED_TRANSITIONS
+        },
+        {
+          model: models.BankAccount,
+          as: 'percentageBankAccount',
+          required: true,
+          include: RELATED_TRANSITIONS
         }
       ],
       ...options

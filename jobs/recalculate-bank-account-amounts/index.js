@@ -13,7 +13,7 @@ const recalculateBankAccountAmounts = () => schedule.scheduleJob(MIDNIGHT, () =>
 
   return sequelize.continueTransaction({}, transaction => {
     return models.BankAccount.fetch(
-      { accountType: ACCOUNT_TYPE.PERCENT },
+      { accountType: ACCOUNT_TYPE.PERCENTAGE },
       {
         attributes: ['id', 'amount'],
         include: [{

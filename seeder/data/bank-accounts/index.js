@@ -9,7 +9,7 @@ bankAccounts['266529598564'] = {
   numberCode: 3012,
   name: 'Andrew Calyatka',
   activity: ACTIVITY.ACTIVE,
-  accountType: ACCOUNT_TYPE.BANK_GROWTH
+  accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND
 };
 
 bankAccounts['266529598565'] = {

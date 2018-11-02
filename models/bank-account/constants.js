@@ -9,8 +9,8 @@ const ACTIVITY = {
 
 const ACCOUNT_TYPE = {
   RAW: 'raw',
-  PERCENT: 'percent',
-  BANK_GROWTH: 'bank_growth',
+  PERCENTAGE: 'percentage',
+  DEVELOPMENT_FUND: 'development_fund',
   CASHBOX: 'cashbox'
 };
 
