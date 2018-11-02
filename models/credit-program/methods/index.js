@@ -1,7 +1,7 @@
 const models = require('../../index');
 const { sequelize } = models;
 
-const fetchDepositPrograms = (where = {}, options = {}) => {
+const fetchCreditPrograms = (where = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.CreditProgram.fetch(where, { ...options, transaction });
   });
@@ -9,5 +9,5 @@ const fetchDepositPrograms = (where = {}, options = {}) => {
 
 
 module.exports = {
-  fetchDepositPrograms
+  fetchCreditPrograms
 };
