@@ -9,6 +9,13 @@ const { manipulateBankAccountAmount } = require('../common-operations');
 const { checkDepositState } = require('./helpers');
 
 
+/**
+ * Add amount of money to bank's cashbox.
+ *
+ * @param amount
+ * @param options
+ * @returns {*}
+ */
 const addMoneyToCashbox = ({ amount }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
@@ -21,6 +28,13 @@ const addMoneyToCashbox = ({ amount }, options = {}) => {
 };
 
 
+/**
+ * Transfer money from bank's cashbox to client's raw bank account.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferToRawFromCashbox = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
@@ -71,6 +85,13 @@ const transferToRawFromCashbox = ({ depositId }, options = {}) => {
 };
 
 
+/**
+ * Transfer money to development fund from client's raw bank account to use money inside bank.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferToDevelopmentFundFromRaw = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
@@ -114,6 +135,13 @@ const transferToDevelopmentFundFromRaw = ({ depositId }, options = {}) => {
 };
 
 
+/**
+ * Transfer percentage money to cashbox from development fund.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferToPercentageFromDevelopmentFund = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
@@ -146,6 +174,13 @@ const transferToPercentageFromDevelopmentFund = ({ depositId }, options = {}) =>
 };
 
 
+/**
+ * Transfer percentage money to cashbox from client's percentage bank account.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferAllToCashboxFromPercentage = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
@@ -189,6 +224,12 @@ const transferAllToCashboxFromPercentage = ({ depositId }, options = {}) => {
 };
 
 
+/**
+ * Withdraw all money from cashbox.
+ *
+ * @param options
+ * @returns {*}
+ */
 const withdrawMoneyFromCashbox = (options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction })
@@ -200,6 +241,14 @@ const withdrawMoneyFromCashbox = (options = {}) => {
   });
 };
 
+
+/**
+ * Transfer all money to client's raw bank account from development fund, i.e. deactivate deposit.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferAllToRawFromDevelopmentFund = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
@@ -244,6 +293,13 @@ const transferAllToRawFromDevelopmentFund = ({ depositId }, options = {}) => {
 };
 
 
+/**
+ * Transfer all deposit's money to cashbox.
+ *
+ * @param depositId
+ * @param options
+ * @returns {*}
+ */
 const transferAllToCashboxFromRaw = ({ depositId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(

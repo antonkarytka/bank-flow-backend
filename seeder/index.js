@@ -9,6 +9,7 @@ return models.sequelize.sync({ force: true })
     mocks.bankAccounts,
     mocks.cities,
     mocks.citizenships,
+    mocks.creditPrograms,
     mocks.depositPrograms,
     mocks.disabilities
   ], ({ data, model }) => {
