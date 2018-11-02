@@ -29,6 +29,8 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
       )
     )
     .spread((developmentFundBankAccount, rawBankAccount, percentageBankAccount) => {
+      if (developmentFundBankAccount.amount - amount < 0) return Promise.reject('Not enough money on development fund bank account to provide a credit.');
+
       return models.CreditProgram.fetchById(creditProgramId, { ...options, transaction })
       .then(creditProgram => {
         return generateContractNumber({ transaction })
