@@ -7,6 +7,8 @@ const DEFINITION_OBJECT = {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
   name: { type: DataTypes.STRING, allowNull: false },
   type: { type: DataTypes.ENUM(Object.values(TYPE)), allowNull: false },
+  daysToReturnMin: { type: DataTypes.INTEGER, allowNull: false },
+  daysToReturnMax: { type: DataTypes.INTEGER, allowNull: false },
   createdAt: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW },
   endsAt: { type: DataTypes.DATEONLY, allowNull: true },
   currency: { type: DataTypes.ENUM(Object.values(CURRENCY)), allowNull: false },

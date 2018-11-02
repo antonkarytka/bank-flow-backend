@@ -10,8 +10,8 @@ const CURRENCY = {
 };
 
 const TYPE = {
-  URGENT_REVOCABLE: 'urgent_revocable',
-  URGENT_IRREVOCABLE: 'urgent_irrevocable',
+  ANNUITY_PAYMENTS: 'annuity', // paying equal sums throughout credit's period
+  MONTHLY_PERCENTAGE_PAYMENT: 'monthly_percentage_payment' // paying credit's percentage every month and paying the whole sum in the end of credit's period
 };
 
 module.exports = {
