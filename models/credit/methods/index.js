@@ -11,10 +11,14 @@ const {
 const { DAYS_IN_YEAR } = require('../../bank-account/methods/common-operations/constants');
 const { RELATED_TRANSITIONS } = require('./constants');
 
+const { manipulateBankAccountAmount } = require('../../bank-account/methods/common-operations');
+const { AMOUNT_ACTION } = require('../../bank-account/methods/common-operations/constants');
+
 
 const createCreditWithDependencies = ({ amount, creditProgramId, userId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
+      models.BankAccount.fetchOne({ accountType: BANK_ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
       models.BankAccount.createBankAccount(
         { amount, userId, activity: BANK_ACCOUNT_ACTIVITY.ACTIVE, accountType: BANK_ACCOUNT_TYPE.RAW },
         { ...options, transaction }
@@ -24,7 +28,7 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
         { ...options, transaction }
       )
     )
-    .spread((rawAccount, percentageAccount) => {
+    .spread((developmentFundBankAccount, rawBankAccount, percentageBankAccount) => {
       return models.CreditProgram.fetchById(creditProgramId, { ...options, transaction })
       .then(creditProgram => {
         return generateContractNumber({ transaction })
@@ -34,13 +38,18 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
             contractNumber,
             dailyPercentChargeAmount: Number(amount) * creditProgram.percent / 100 / DAYS_IN_YEAR,
             creditProgramId: creditProgram.id,
-            rawBankAccountId: rawAccount.id,
-            percentageBankAccountId: percentageAccount.id
+            rawBankAccountId: rawBankAccount.id,
+            percentageBankAccountId: percentageBankAccount.id
           };
 
           return models.Credit.createOne(creditContent, { ...options, transaction })
         })
-      });
+      })
+      .tap(() => manipulateBankAccountAmount(
+        AMOUNT_ACTION.DECREASE,
+        { id: developmentFundBankAccount.id, amount },
+        { ...options, transaction }
+      ))
     })
   });
 };
