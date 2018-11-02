@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 
 const models = require('../../index');
 const { sequelize } = models;
-const { generateContractNumber } = require('./helpers');
+const generateContractNumber = require('../../../helpers/contract-number');
 
 const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
@@ -27,7 +27,7 @@ const createDepositWithDependencies = ({ amount, depositProgramId, userId }, opt
     .spread((rawAccount, percentageAccount) => {
       return models.DepositProgram.fetchById(depositProgramId, { ...options, transaction })
       .then(depositProgram => {
-        return generateContractNumber({ transaction })
+        return generateContractNumber(models.Deposit, { transaction })
         .then(contractNumber => {
           const depositContent = {
             amount,

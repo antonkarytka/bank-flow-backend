@@ -2,7 +2,7 @@ const Promise = require('bluebird');
 
 const models = require('../../index');
 const { sequelize } = models;
-const { generateContractNumber } = require('./helpers');
+const generateContractNumber = require('../../../helpers/contract-number');
 
 const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
@@ -33,7 +33,7 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
 
       return models.CreditProgram.fetchById(creditProgramId, { ...options, transaction })
       .then(creditProgram => {
-        return generateContractNumber({ transaction })
+        return generateContractNumber(models.Credit, { transaction })
         .then(contractNumber => {
           const creditContent = {
             amount,
