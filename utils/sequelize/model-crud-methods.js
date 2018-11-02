@@ -62,7 +62,6 @@ const addAbilityToInjectCrudMethods = sequelize => {
       }
 
       const scopes = config.scopes || [];
-      console.log('fuck');
       return model.scope(scopes).findAndCountAll(options)
       .then(result => {
         return {
