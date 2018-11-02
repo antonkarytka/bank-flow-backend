@@ -22,7 +22,7 @@ router.get('/cashbox', [
   validateRequestSchema(VALIDATION_SCHEMAS.FETCH_CASHBOX),
   (req, res) => {
     return models.BankAccount.fetchCashboxAccount(req.query)
-    .then(cities => res.status(200).json(cities))
+    .then(cashboxAccount => res.status(200).json(cashboxAccount))
     .catch(err => res.status(400).json(err))
   }
 ]);
