@@ -8,12 +8,12 @@ const { TYPE } = require('../../credit-program/constants');
 const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
   ACTIVITY: BANK_ACCOUNT_ACTIVITY
-} = require('../../bank-account/constants');
-const { DAYS_IN_YEAR } = require('../../bank-account/methods/common-operations/constants');
+} = require('../../../helpers/common-constants/constants');
+const { AMOUNT_ACTION, DAYS_IN_YEAR } = require('../../../helpers/common-constants/constants');
 const { RELATED_TRANSITIONS } = require('./constants');
 
 const { manipulateBankAccountAmount } = require('../../bank-account/methods/common-operations');
-const { AMOUNT_ACTION } = require('../../bank-account/methods/common-operations/constants');
+const { transferAllToCashboxFromRaw, withdrawMoneyFromCashbox } = require('./cash-operations/index');
 
 
 const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt, durationInMonths }, options = {}) => {
@@ -116,6 +116,16 @@ const fetchCreditById = (where = {}, options = {}) => {
   )
 };
 
+const getCreditAmount = ({ creditId }, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return transferAllToCashboxFromRaw({ creditId }, { ...options, transaction})
+    .then(result => {
+      return withdrawMoneyFromCashbox({ ...options, transaction})
+      .then(result => Promise.resolve('Credit has been successfully transferred to client.'));
+    });
+  });
+};
+
 
 const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
   if (creditProgram.type === TYPE.ANNUITY_PAYMENTS) {
@@ -131,5 +141,6 @@ const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
 module.exports = {
   createCreditWithDependencies,
   fetchCredits,
-  fetchCreditById
+  fetchCreditById,
+  getCreditAmount
 };

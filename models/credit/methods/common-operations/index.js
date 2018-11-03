@@ -2,9 +2,8 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS,
-  ACTIVITY, DAYS_IN_YEAR } = require('../../../../helpers/common-constants/constants');
 const { TYPE } = require('../../../credit-program/constants');
+const { ACTIVITY, DAYS_IN_YEAR, AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS } = require('../../../../helpers/common-constants/constants');
 const { Op } = sequelize;
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {

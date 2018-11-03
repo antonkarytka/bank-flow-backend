@@ -35,5 +35,14 @@ router.post('/', [
   }
 ]);
 
+router.post('/get-credit-amount', [
+  validateRequestSchema(VALIDATION_SCHEMAS.GET_CREDIT_AMOUNT),
+  (req, res) => {
+    return models.Credit.getCreditAmount(req.body)
+      .then(credit => res.status(200).json(credit))
+      .catch(err => res.status(400).json(err))
+  }
+]);
+
 
 module.exports = router;
