@@ -3,6 +3,7 @@ const Promise = require('bluebird');
 const models = require('../../index');
 const { sequelize } = models;
 const generateContractNumber = require('../../../helpers/contract-number');
+const { TYPE } = require('../../credit-program/constants');
 
 const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
@@ -15,7 +16,7 @@ const { manipulateBankAccountAmount } = require('../../bank-account/methods/comm
 const { AMOUNT_ACTION } = require('../../bank-account/methods/common-operations/constants');
 
 
-const createCreditWithDependencies = ({ amount, creditProgramId, userId }, options = {}) => {
+const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt, durationInMonths }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
       models.BankAccount.fetchOne({ accountType: BANK_ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
@@ -37,8 +38,12 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
         .then(contractNumber => {
           const creditContent = {
             amount,
+            residualAmount: amount,
             contractNumber,
-            dailyPercentChargeAmount: Number(amount) * creditProgram.percent / 100 / DAYS_IN_YEAR,
+            monthlyChargeAmount: getMonthlyChargeAmount(creditProgram, amount, durationInMonths),
+            endsAt: endsAt,
+            durationInMonths: durationInMonths,
+            creditBody: amount / durationInMonths,
             creditProgramId: creditProgram.id,
             rawBankAccountId: rawBankAccount.id,
             percentageBankAccountId: percentageBankAccount.id
@@ -55,7 +60,6 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId }, optio
     })
   });
 };
-
 
 const fetchCredits = (where, options = {}) => {
   return models.Credit.fetch(
@@ -110,6 +114,17 @@ const fetchCreditById = (where = {}, options = {}) => {
       ...options
     },
   )
+};
+
+
+const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
+  if (creditProgram.type === TYPE.ANNUITY_PAYMENTS) {
+    const monthlyPercent = creditProgram.percent / 12 / 100;
+    return (monthlyPercent * (1 + monthlyPercent) ** durationInMonths) / ((1 + monthlyPercent) ** (monthlyPercent - 1));
+  } else if(creditProgram.type === TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
+    const yearlyPercent = creditProgram.percent / 100;
+    return amount * yearlyPercent / DAYS_IN_YEAR * 30;
+  }
 };
 
 

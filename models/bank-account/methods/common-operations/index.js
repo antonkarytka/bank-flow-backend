@@ -4,7 +4,9 @@ const models = require('../../../index');
 const { sequelize } = models;
 const { ACTIVITY } = require('../../constants');
 const { AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS } = require('./constants');
-
+const { TYPE } = require('../../../credit-program/constants');
+const { DAYS_IN_YEAR } = require('../common-operations/constants');
+const { Op } = sequelize;
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {
   if (!ALLOWED_AMOUNT_ACTIONS.includes(action)) return Promise.reject(`Could not manipulate bank account's amount. Unrecognized action: ${action}`);
@@ -26,7 +28,6 @@ const manipulateBankAccountAmount = (action, content, options = {}) => {
 };
 
 
-
 function updateBankAccountContent({ content, updated, bankAccount, amountAction }) {
   if (bankAccount.activity === ACTIVITY.ACTIVE) {
     if (amountAction === AMOUNT_ACTION.INCREASE) updated.debit = bankAccount.debit + content.amount;
@@ -39,6 +40,43 @@ function updateBankAccountContent({ content, updated, bankAccount, amountAction 
   return updated;
 }
 
+
+const changeMonthSimulation = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.CreditProgram.fetch({
+      type: TYPE.MONTHLY_PERCENTAGE_PAYMENT
+    }, { ...options, transaction }).then(creditPrograms => {
+      return models.Credit.fetch({
+        creditProgramId: {
+          [Op.in]: creditPrograms.map(program => program.id)
+        }
+      }, {
+        ...options,
+        include: [
+          { model: models.CreditProgram, as: 'creditProgram'}
+        ],
+        transaction
+      })
+      .then(credits => {
+        return Promise.all(credits.map(credit => {
+          const newResidualAmount = credit.residualAmount - credit.creditBody;
+          return models.Credit.updateOne({
+            id: credit.id
+          }, {
+            monthlyChargeAmount: newResidualAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30,
+            residualAmount: newResidualAmount
+          }, {
+            ...options, transaction
+          })
+        }))
+        .then(success => Promise.resolve('Month has been successfully changed.'));
+      });
+    });
+  });
+};
+
+
 module.exports = {
-  manipulateBankAccountAmount
+  manipulateBankAccountAmount,
+  changeMonthSimulation
 };

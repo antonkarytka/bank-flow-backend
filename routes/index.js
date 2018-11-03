@@ -11,5 +11,6 @@ router.use('/deposit-programs', require('./deposit-programs'));
 router.use('/disabilities', require('./disabilities'));
 router.use('/transitions', require('./transitions'));
 router.use('/users', require('./users'));
+router.use('/operations', require('./operations'));
 
 module.exports = router;
