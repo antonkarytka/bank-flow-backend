@@ -5,6 +5,7 @@ const DEFINITION_OBJECT = {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
   amount: { type: DataTypes.DOUBLE, allowNull: false },
   residualAmount: { type: DataTypes.DOUBLE, allowNull: false },
+  residualMonthlyPaymentAmount: { type: DataTypes.DOUBLE, allowNull: true },
   contractNumber: { type: DataTypes.STRING, allowNull: false },
   monthlyChargeAmount: { type: DataTypes.DOUBLE, allowNull: false },
   createdAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },

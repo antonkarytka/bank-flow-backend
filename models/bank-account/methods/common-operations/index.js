@@ -40,7 +40,18 @@ function updateBankAccountContent({ content, updated, bankAccount, amountAction 
 }
 
 
-const changeMonthSimulation = (content = {}, options = {}) => {
+const simulateMonthChanging = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return Promise.join(
+      changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
+      changeAnnuityCreditState(content, { ...options, transaction})
+    )
+    .then(result => Promise.resolve('Month has been successfully changed.'));
+  });
+};
+
+
+const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.CreditProgram.fetch({
       type: TYPE.MONTHLY_PERCENTAGE_PAYMENT
@@ -58,17 +69,52 @@ const changeMonthSimulation = (content = {}, options = {}) => {
       })
       .then(credits => {
         return Promise.all(credits.map(credit => {
-          const newResidualAmount = credit.residualAmount - credit.creditBody;
+          const newResidualMonthlyPaymentAmount = credit.residualMonthlyPaymentAmount - credit.creditBody;
+          console.log(credit.monthlyChargeAmount);
+          console.log(credit.residualAmount);
           return models.Credit.updateOne({
             id: credit.id
           }, {
-            monthlyChargeAmount: newResidualAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30,
-            residualAmount: newResidualAmount
+            monthlyChargeAmount: newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100)
+              / DAYS_IN_YEAR * 30 + credit.creditBody,
+            residualAmount: credit.residualAmount - credit.monthlyChargeAmount,
+            residualMonthlyPaymentAmount: newResidualMonthlyPaymentAmount
           }, {
             ...options, transaction
           })
-        }))
-        .then(success => Promise.resolve('Month has been successfully changed.'));
+        }));
+      });
+    });
+  });
+};
+
+
+const changeAnnuityCreditState = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.CreditProgram.fetch({
+      type: TYPE.ANNUITY_PAYMENTS
+    }, { ...options, transaction }).then(creditPrograms => {
+      return models.Credit.fetch({
+        creditProgramId: {
+          [Op.in]: creditPrograms.map(program => program.id)
+        }
+      }, {
+        ...options,
+        include: [
+          { model: models.CreditProgram, as: 'creditProgram'}
+        ],
+        transaction
+      })
+      .then(credits => {
+        return Promise.all(credits.map(credit => {
+          return models.Credit.updateOne({
+            id: credit.id
+          }, {
+            residualAmount: credit.residualAmount - credit.monthlyChargeAmount
+          }, {
+            ...options, transaction
+          })
+        }));
       });
     });
   });
@@ -77,5 +123,5 @@ const changeMonthSimulation = (content = {}, options = {}) => {
 
 module.exports = {
   manipulateBankAccountAmount,
-  changeMonthSimulation
+  simulateMonthChanging
 };

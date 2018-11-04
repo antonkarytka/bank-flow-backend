@@ -49,6 +49,10 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt,
             percentageBankAccountId: percentageBankAccount.id
           };
 
+          if (creditProgram.type === TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
+            creditContent.residualMonthlyPaymentAmount = amount;
+          }
+
           return models.Credit.createOne(creditContent, { ...options, transaction })
         })
       })
@@ -130,10 +134,13 @@ const getCreditAmount = ({ creditId }, options = {}) => {
 const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
   if (creditProgram.type === TYPE.ANNUITY_PAYMENTS) {
     const monthlyPercent = creditProgram.percent / 12 / 100;
-    return (monthlyPercent * (1 + monthlyPercent) ** durationInMonths) / ((1 + monthlyPercent) ** (monthlyPercent - 1));
+    const monthlyCoefficient = (monthlyPercent * (1 + monthlyPercent) ** durationInMonths) /
+      ((1 + monthlyPercent) ** durationInMonths - 1);
+    return monthlyCoefficient * amount;
   } else if(creditProgram.type === TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
     const yearlyPercent = creditProgram.percent / 100;
-    return amount * yearlyPercent / DAYS_IN_YEAR * 30;
+    const creditBody = amount / durationInMonths;
+    return amount * yearlyPercent / DAYS_IN_YEAR * 30 + creditBody;
   }
 };
 
