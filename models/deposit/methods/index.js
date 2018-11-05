@@ -2,14 +2,15 @@ const Promise = require('bluebird');
 
 const models = require('../../index');
 const { sequelize } = models;
-const generateContractNumber = require('../../../helpers/contract-number');
 
 const {
   ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
   ACTIVITY: BANK_ACCOUNT_ACTIVITY
 } = require('../../bank-account/constants');
-const { DAYS_IN_YEAR } = require('../../bank-account/methods/common-operations/constants');
+const { DAYS_IN_YEAR } = require('../../../constants');
 const { RELATED_TRANSITIONS } = require('./constants');
+
+const generateContractNumber = require('../../../helpers/contract-number');
 
 
 const createDepositWithDependencies = ({ amount, depositProgramId, userId }, options = {}) => {

@@ -2,8 +2,12 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { ACTIVITY } = require('../../constants');
-const { AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS } = require('./constants');
+
+const {
+  AMOUNT_ACTION,
+  ALLOWED_AMOUNT_ACTIONS,
+  ACTIVITY
+} = require('../../../bank-account/constants');
 
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {
@@ -26,7 +30,6 @@ const manipulateBankAccountAmount = (action, content, options = {}) => {
 };
 
 
-
 function updateBankAccountContent({ content, updated, bankAccount, amountAction }) {
   if (bankAccount.activity === ACTIVITY.ACTIVE) {
     if (amountAction === AMOUNT_ACTION.INCREASE) updated.debit = bankAccount.debit + content.amount;
@@ -38,6 +41,7 @@ function updateBankAccountContent({ content, updated, bankAccount, amountAction 
 
   return updated;
 }
+
 
 module.exports = {
   manipulateBankAccountAmount
