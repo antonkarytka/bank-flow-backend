@@ -15,7 +15,11 @@ const { RELATED_TRANSITIONS } = require('./constants');
 const generateContractNumber = require('../../../helpers/contract-number');
 const { manipulateBankAccountAmount } = require('../../bank-account/methods/common-operations');
 const { withdrawMoneyFromCashbox } = require('../../bank-account/methods/cash-operations');
-const { transferAllToCashboxFromRaw } = require('./cash-operations');
+const {
+  transferAllToCashboxFromRaw,
+  changeMonthlyPercentagePaymentCreditState,
+  changeAnnuityCreditState
+} = require('./cash-operations');
 
 
 const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt, durationInMonths }, options = {}) => {
@@ -147,9 +151,21 @@ const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
 };
 
 
+const simulateMonthChanging = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return Promise.join(
+      changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
+      changeAnnuityCreditState(content, { ...options, transaction})
+    )
+    .then(() => Promise.resolve('Month has been successfully changed.'));
+  });
+};
+
+
 module.exports = {
   createCreditWithDependencies,
   fetchCredits,
   fetchCreditById,
-  getCreditAmount
+  getCreditAmount,
+  simulateMonthChanging
 };

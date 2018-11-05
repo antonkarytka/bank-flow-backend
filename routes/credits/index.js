@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const models = require('../../models');
-const validateRequestSchema = require('../../helpers/http/request-schema-validator');
 const VALIDATION_SCHEMAS = require('./validation-schemas');
+
+const validateRequestSchema = require('../../helpers/http/request-schema-validator');
+const { simulateMonthChanging } = require('../../models/credit/methods');
 
 
 router.get('/', [
@@ -35,12 +37,22 @@ router.post('/', [
   }
 ]);
 
+
 router.post('/get-credit-amount', [
   validateRequestSchema(VALIDATION_SCHEMAS.GET_CREDIT_AMOUNT),
   (req, res) => {
     return models.Credit.getCreditAmount(req.body)
-      .then(credit => res.status(200).json(credit))
-      .catch(err => res.status(400).json(err))
+    .then(credit => res.status(200).json(credit))
+    .catch(err => res.status(400).json(err))
+  }
+]);
+
+
+router.post('/change-month-simulation', [
+  (req, res) => {
+    return simulateMonthChanging(req.query)
+    .then(response => res.status(200).json(response))
+    .catch(err => res.status(400).json(err))
   }
 ]);
 

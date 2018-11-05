@@ -2,15 +2,12 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { Op } = sequelize;
 
 const {
   AMOUNT_ACTION,
   ALLOWED_AMOUNT_ACTIONS,
   ACTIVITY
 } = require('../../../bank-account/constants');
-const { TYPE: CREDIT_PROGRAM_TYPE } = require('../../../credit-program/constants');
-const { DAYS_IN_YEAR } = require('../../../../constants');
 
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {
@@ -46,78 +43,6 @@ function updateBankAccountContent({ content, updated, bankAccount, amountAction 
 }
 
 
-const simulateMonthChanging = (content = {}, options = {}) => {
-  return sequelize.continueTransaction(options, transaction => {
-    return Promise.join(
-      changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
-      changeAnnuityCreditState(content, { ...options, transaction})
-    )
-    .then(() => Promise.resolve('Month has been successfully changed.'));
-  });
-};
-
-
-const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) => {
-  return sequelize.continueTransaction(options, transaction => {
-    return models.CreditProgram.fetch({ type: CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT }, { ...options, transaction })
-    .then(creditPrograms => {
-      return models.Credit.fetch(
-        { creditProgramId: { [Op.in]: creditPrograms.map(program => program.id) } },
-        {
-          ...options,
-          include: [{
-            model: models.CreditProgram,
-            as: 'creditProgram',
-            required: true
-          }],
-          transaction
-        }
-      )
-      .then(credits => Promise.map(credits, credit => {
-        const newResidualMonthlyPaymentAmount = credit.residualMonthlyPaymentAmount - credit.creditBody;
-
-        return models.Credit.updateOne(
-          { id: credit.id },
-          {
-            monthlyChargeAmount: newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30 + credit.creditBody,
-            residualAmount: credit.residualAmount - credit.monthlyChargeAmount,
-            residualMonthlyPaymentAmount: newResidualMonthlyPaymentAmount
-          },
-          { ...options, transaction }
-        )
-      }));
-    });
-  });
-};
-
-
-const changeAnnuityCreditState = (content = {}, options = {}) => {
-  return sequelize.continueTransaction(options, transaction => {
-    return models.CreditProgram.fetch({ type: CREDIT_PROGRAM_TYPE.ANNUITY_PAYMENTS }, { ...options, transaction })
-    .then(creditPrograms => {
-      return models.Credit.fetch(
-        { creditProgramId: { [Op.in]: creditPrograms.map(program => program.id) } },
-        {
-          ...options,
-          include: [{
-            model: models.CreditProgram,
-            as: 'creditProgram',
-            required: true
-          }],
-          transaction
-        }
-      )
-      .then(credits => Promise.map(credits, credit => models.Credit.updateOne(
-        { id: credit.id },
-        { residualAmount: credit.residualAmount - credit.monthlyChargeAmount },
-        { ...options, transaction }
-      )));
-    });
-  });
-};
-
-
 module.exports = {
-  manipulateBankAccountAmount,
-  simulateMonthChanging
+  manipulateBankAccountAmount
 };
