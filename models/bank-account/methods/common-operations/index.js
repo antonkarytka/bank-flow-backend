@@ -2,10 +2,16 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS,
-  ACTIVITY, DAYS_IN_YEAR } = require('../../../../helpers/common-constants/constants');
-const { TYPE } = require('../../../credit-program/constants');
 const { Op } = sequelize;
+
+const {
+  AMOUNT_ACTION,
+  ALLOWED_AMOUNT_ACTIONS,
+  ACTIVITY
+} = require('../../../bank-account/constants');
+const { TYPE: CREDIT_PROGRAM_TYPE } = require('../../../credit-program/constants');
+const { DAYS_IN_YEAR } = require('../../../../constants');
+
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {
   if (!ALLOWED_AMOUNT_ACTIONS.includes(action)) return Promise.reject(`Could not manipulate bank account's amount. Unrecognized action: ${action}`);
@@ -46,44 +52,40 @@ const simulateMonthChanging = (content = {}, options = {}) => {
       changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
       changeAnnuityCreditState(content, { ...options, transaction})
     )
-    .then(result => Promise.resolve('Month has been successfully changed.'));
+    .then(() => Promise.resolve('Month has been successfully changed.'));
   });
 };
 
 
 const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.CreditProgram.fetch({
-      type: TYPE.MONTHLY_PERCENTAGE_PAYMENT
-    }, { ...options, transaction }).then(creditPrograms => {
-      return models.Credit.fetch({
-        creditProgramId: {
-          [Op.in]: creditPrograms.map(program => program.id)
+    return models.CreditProgram.fetch({ type: CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT }, { ...options, transaction })
+    .then(creditPrograms => {
+      return models.Credit.fetch(
+        { creditProgramId: { [Op.in]: creditPrograms.map(program => program.id) } },
+        {
+          ...options,
+          include: [{
+            model: models.CreditProgram,
+            as: 'creditProgram',
+            required: true
+          }],
+          transaction
         }
-      }, {
-        ...options,
-        include: [
-          { model: models.CreditProgram, as: 'creditProgram'}
-        ],
-        transaction
-      })
-      .then(credits => {
-        return Promise.all(credits.map(credit => {
-          const newResidualMonthlyPaymentAmount = credit.residualMonthlyPaymentAmount - credit.creditBody;
-          console.log(credit.monthlyChargeAmount);
-          console.log(credit.residualAmount);
-          return models.Credit.updateOne({
-            id: credit.id
-          }, {
-            monthlyChargeAmount: newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100)
-              / DAYS_IN_YEAR * 30 + credit.creditBody,
+      )
+      .then(credits => Promise.map(credits, credit => {
+        const newResidualMonthlyPaymentAmount = credit.residualMonthlyPaymentAmount - credit.creditBody;
+
+        return models.Credit.updateOne(
+          { id: credit.id },
+          {
+            monthlyChargeAmount: newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30 + credit.creditBody,
             residualAmount: credit.residualAmount - credit.monthlyChargeAmount,
             residualMonthlyPaymentAmount: newResidualMonthlyPaymentAmount
-          }, {
-            ...options, transaction
-          })
-        }));
-      });
+          },
+          { ...options, transaction }
+        )
+      }));
     });
   });
 };
@@ -91,31 +93,25 @@ const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) =
 
 const changeAnnuityCreditState = (content = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.CreditProgram.fetch({
-      type: TYPE.ANNUITY_PAYMENTS
-    }, { ...options, transaction }).then(creditPrograms => {
-      return models.Credit.fetch({
-        creditProgramId: {
-          [Op.in]: creditPrograms.map(program => program.id)
+    return models.CreditProgram.fetch({ type: CREDIT_PROGRAM_TYPE.ANNUITY_PAYMENTS }, { ...options, transaction })
+    .then(creditPrograms => {
+      return models.Credit.fetch(
+        { creditProgramId: { [Op.in]: creditPrograms.map(program => program.id) } },
+        {
+          ...options,
+          include: [{
+            model: models.CreditProgram,
+            as: 'creditProgram',
+            required: true
+          }],
+          transaction
         }
-      }, {
-        ...options,
-        include: [
-          { model: models.CreditProgram, as: 'creditProgram'}
-        ],
-        transaction
-      })
-      .then(credits => {
-        return Promise.all(credits.map(credit => {
-          return models.Credit.updateOne({
-            id: credit.id
-          }, {
-            residualAmount: credit.residualAmount - credit.monthlyChargeAmount
-          }, {
-            ...options, transaction
-          })
-        }));
-      });
+      )
+      .then(credits => Promise.map(credits, credit => models.Credit.updateOne(
+        { id: credit.id },
+        { residualAmount: credit.residualAmount - credit.monthlyChargeAmount },
+        { ...options, transaction }
+      )));
     });
   });
 };

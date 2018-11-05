@@ -2,30 +2,32 @@ const Promise = require('bluebird');
 
 const models = require('../../index');
 const { sequelize } = models;
-const generateContractNumber = require('../../../helpers/contract-number');
-const { TYPE } = require('../../credit-program/constants');
 
 const {
-  ACCOUNT_TYPE: BANK_ACCOUNT_TYPE,
-  ACTIVITY: BANK_ACCOUNT_ACTIVITY
-} = require('../../../helpers/common-constants/constants');
-const { AMOUNT_ACTION, DAYS_IN_YEAR } = require('../../../helpers/common-constants/constants');
+  ACCOUNT_TYPE: BANK_ACCOUNT_CREDIT_PROGRAM_TYPE,
+  ACTIVITY: BANK_ACCOUNT_ACTIVITY,
+  AMOUNT_ACTION
+} = require('../../bank-account/constants');
+const { TYPE: CREDIT_PROGRAM_TYPE } = require('../../credit-program/constants');
+const { DAYS_IN_YEAR } = require('../../../constants');
 const { RELATED_TRANSITIONS } = require('./constants');
 
+const generateContractNumber = require('../../../helpers/contract-number');
 const { manipulateBankAccountAmount } = require('../../bank-account/methods/common-operations');
-const { transferAllToCashboxFromRaw, withdrawMoneyFromCashbox } = require('./cash-operations/index');
+const { withdrawMoneyFromCashbox } = require('../../bank-account/methods/cash-operations');
+const { transferAllToCashboxFromRaw } = require('./cash-operations');
 
 
 const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt, durationInMonths }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return Promise.join(
-      models.BankAccount.fetchOne({ accountType: BANK_ACCOUNT_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
+      models.BankAccount.fetchOne({ accountType: BANK_ACCOUNT_CREDIT_PROGRAM_TYPE.DEVELOPMENT_FUND }, { ...options, transaction }),
       models.BankAccount.createBankAccount(
-        { amount, userId, activity: BANK_ACCOUNT_ACTIVITY.ACTIVE, accountType: BANK_ACCOUNT_TYPE.RAW },
+        { amount, userId, activity: BANK_ACCOUNT_ACTIVITY.ACTIVE, accountType: BANK_ACCOUNT_CREDIT_PROGRAM_TYPE.RAW },
         { ...options, transaction }
       ),
       models.BankAccount.createBankAccount(
-        { amount: 0, userId, activity: BANK_ACCOUNT_ACTIVITY.ACTIVE, accountType: BANK_ACCOUNT_TYPE.PERCENTAGE },
+        { amount: 0, userId, activity: BANK_ACCOUNT_ACTIVITY.ACTIVE, accountType: BANK_ACCOUNT_CREDIT_PROGRAM_TYPE.PERCENTAGE },
         { ...options, transaction }
       )
     )
@@ -49,7 +51,7 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt,
             percentageBankAccountId: percentageBankAccount.id
           };
 
-          if (creditProgram.type === TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
+          if (creditProgram.type === CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
             creditContent.residualMonthlyPaymentAmount = amount;
           }
 
@@ -64,6 +66,7 @@ const createCreditWithDependencies = ({ amount, creditProgramId, userId, endsAt,
     })
   });
 };
+
 
 const fetchCredits = (where, options = {}) => {
   return models.Credit.fetch(
@@ -120,24 +123,23 @@ const fetchCreditById = (where = {}, options = {}) => {
   )
 };
 
+
 const getCreditAmount = ({ creditId }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return transferAllToCashboxFromRaw({ creditId }, { ...options, transaction})
-    .then(result => {
-      return withdrawMoneyFromCashbox({ ...options, transaction})
-      .then(result => Promise.resolve('Credit has been successfully transferred to client.'));
-    });
+    .then(() => withdrawMoneyFromCashbox({ ...options, transaction}))
+    .then(() => Promise.resolve('Credit has been successfully transferred to client.'));
   });
 };
 
 
 const getMonthlyChargeAmount = (creditProgram, amount, durationInMonths) => {
-  if (creditProgram.type === TYPE.ANNUITY_PAYMENTS) {
+  if (creditProgram.type === CREDIT_PROGRAM_TYPE.ANNUITY_PAYMENTS) {
     const monthlyPercent = creditProgram.percent / 12 / 100;
     const monthlyCoefficient = (monthlyPercent * (1 + monthlyPercent) ** durationInMonths) /
       ((1 + monthlyPercent) ** durationInMonths - 1);
     return monthlyCoefficient * amount;
-  } else if(creditProgram.type === TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
+  } else if(creditProgram.type === CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT) {
     const yearlyPercent = creditProgram.percent / 100;
     const creditBody = amount / durationInMonths;
     return amount * yearlyPercent / DAYS_IN_YEAR * 30 + creditBody;

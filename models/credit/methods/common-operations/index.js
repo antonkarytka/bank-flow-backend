@@ -2,9 +2,16 @@ const Promise = require('bluebird');
 
 const models = require('../../../index');
 const { sequelize } = models;
-const { TYPE } = require('../../../credit-program/constants');
-const { ACTIVITY, DAYS_IN_YEAR, AMOUNT_ACTION, ALLOWED_AMOUNT_ACTIONS } = require('../../../../helpers/common-constants/constants');
 const { Op } = sequelize;
+
+const {
+  ACTIVITY,
+  AMOUNT_ACTION,
+  ALLOWED_AMOUNT_ACTIONS
+} = require('../../../bank-account/constants');
+const { TYPE: CREDIT_PROGRAM_TYPE } = require('../../../credit-program/constants');
+const { DAYS_IN_YEAR } = require('../../../../constants');
+
 
 const manipulateBankAccountAmount = (action, content, options = {}) => {
   if (!ALLOWED_AMOUNT_ACTIONS.includes(action)) return Promise.reject(`Could not manipulate bank account's amount. Unrecognized action: ${action}`);
@@ -42,7 +49,7 @@ function updateBankAccountContent({ content, updated, bankAccount, amountAction 
 const changeMonthSimulation = (content = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.CreditProgram.fetch({
-      type: TYPE.MONTHLY_PERCENTAGE_PAYMENT
+      type: CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT
     }, { ...options, transaction }).then(creditPrograms => {
       return models.Credit.fetch({
         creditProgramId: {

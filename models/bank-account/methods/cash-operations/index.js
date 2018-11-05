@@ -3,8 +3,12 @@ const Promise = require('bluebird');
 const models = require('../../../index');
 const { sequelize } = models;
 
-const { ACCOUNT_TYPE } = require('../../../../helpers/common-constants/constants');
-const { AMOUNT_ACTION: { INCREASE, DECREASE }, DAYS_IN_YEAR } = require('../../../../helpers/common-constants/constants');
+const {
+  ACCOUNT_TYPE,
+  AMOUNT_ACTION: { INCREASE, DECREASE }
+} = require('../../../bank-account/constants');
+const { DAYS_IN_YEAR } = require('../../../../constants');
+
 const { manipulateBankAccountAmount } = require('../common-operations');
 const { checkDepositState } = require('./helpers');
 
