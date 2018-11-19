@@ -7,7 +7,7 @@
     "seed": "nodemon ./seeder/index"
   },
   "dependencies": {
-    "bcrypt": "^3.0.0",
+    "bcrypt": "^3.0.2",
     "bluebird": "^3.5.2",
     "cookie-parser": "^1.4.3",
     "debug": "^4.0.0",
