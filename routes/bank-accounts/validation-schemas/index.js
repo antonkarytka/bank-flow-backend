@@ -7,5 +7,6 @@ module.exports = {
   TRANSFER_ALL_TO_RAW_FROM_DEVELOPMENT_FUND: require('./transfer-all-to-raw-from-development-fund'),
   TRANSFER_TO_DEVELOPMENT_FUND_FROM_RAW: require('./transfer-to-development-fund-from-raw'),
   TRANSFER_TO_PERCENTAGE_FROM_DEVELOPMENT_FUND: require('./transfer-to-percentage-from-development-fund'),
-  TRANSFER_TO_RAW_FROM_CASHBOX: require('./transfer-to-raw-from-cashbox')
+  TRANSFER_TO_RAW_FROM_CASHBOX: require('./transfer-to-raw-from-cashbox'),
+  WITHDRAW: require('./withdraw')
 };

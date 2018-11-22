@@ -26,19 +26,27 @@ const createBankAccount = (content, options = {}) => {
   });
 };
 
+const withdraw = ({ bankAccountId, amount }, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.BankAccount.fetchById(bankAccountId, { attributes: ['amount'], transaction }, { strict: true })
+    .then(({ amount: currentAmount }) => {
+      const updatedAmount = currentAmount - amount;
+      if (updatedAmount < 0) return Promise.reject(`Unable to withdraw money from bank account (${bankAccountId}): insufficient funds. Current amount is ${currentAmount}.`);
+
+      return models.BankAccount.updateOne({ id: bankAccountId }, { amount: updatedAmount }, { transaction })
+    })
+  })
+};
 
 const fetchBankAccountById = ({ bankAccountId }, options = {}) => {
-  return models.BankAccount.fetchById(
-    bankAccountId,
-    {
-      ...options,
-      include: [{
-        model: models.User,
-        as: 'user',
-        required: true
-      }]
-    }
-  )
+  return models.BankAccount.fetchById(bankAccountId, {
+    ...options,
+    include: [{
+      model: models.User,
+      as: 'user',
+      required: true
+    }]
+  })
 };
 
 
@@ -50,5 +58,6 @@ const fetchCashboxAccount = (where, options = {}) => {
 module.exports = {
   createBankAccount,
   fetchBankAccountById,
-  fetchCashboxAccount
+  fetchCashboxAccount,
+  withdraw
 };

@@ -107,5 +107,14 @@ router.get('/:bankAccountId', [
   }
 ]);
 
+router.post('/:bankAccountId/withdraw', [
+  validateRequestSchema(VALIDATION_SCHEMAS.WITHDRAW),
+  (req, res) => {
+    return models.BankAccount.withdraw({ ...req.params, ...req.body })
+    .then(result => res.status(200).json(result))
+    .catch(err => res.status(400).json(err))
+  }
+]);
+
 
 module.exports = router;
