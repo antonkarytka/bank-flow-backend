@@ -1,5 +1,5 @@
 module.exports = (BankAccount, models) => {
-  BankAccount.belongsTo(models.User, { as: 'user', foreignKey: { name: 'userId', allowNull: true } });
+  BankAccount.belongsTo(models.User, { as: 'user', foreignKey: { name: 'userId', allowNull: false } });
   BankAccount.hasOne(models.Deposit, { as: 'rawAccountDeposit', foreignKey: { name: 'rawBankAccountId', allowNull: false }});
   BankAccount.hasOne(models.Deposit, { as: 'percentageAccountDeposit', foreignKey: { name: 'percentageBankAccountId', allowNull: false }});
   BankAccount.hasOne(models.Credit, { as: 'rawAccountCredit', foreignKey: { name: 'rawBankAccountId', allowNull: false }});

@@ -5,5 +5,6 @@ module.exports = {
   citizenships: require('./citizenships'),
   creditPrograms: require('./credit-programs'),
   depositPrograms: require('./deposit-programs'),
-  disabilities: require('./disabilities')
+  disabilities: require('./disabilities'),
+  users: require('./users')
 };

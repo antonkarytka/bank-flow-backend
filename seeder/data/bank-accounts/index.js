@@ -1,5 +1,6 @@
 const models = require('../../../models');
 const { ACTIVITY, ACCOUNT_TYPE } = require('../../../models/bank-account/constants');
+const { data: users } = require('../users');
 
 const bankAccounts = {};
 
@@ -9,7 +10,8 @@ bankAccounts['266529598564'] = {
   numberCode: 3012,
   name: 'Andrew Calyatka',
   activity: ACTIVITY.ACTIVE,
-  accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND
+  accountType: ACCOUNT_TYPE.DEVELOPMENT_FUND,
+  userId: users['andrew_calyatka'].id
 };
 
 bankAccounts['266529598565'] = {
@@ -18,7 +20,8 @@ bankAccounts['266529598565'] = {
   numberCode: 3012,
   name: 'Uladzislau Kirichenka',
   activity: ACTIVITY.ACTIVE,
-  accountType: ACCOUNT_TYPE.CASHBOX
+  accountType: ACCOUNT_TYPE.CASHBOX,
+  userId: users['uladzislau_kirichenka'].id
 };
 
 
