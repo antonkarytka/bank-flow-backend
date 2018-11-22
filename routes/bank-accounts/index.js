@@ -101,7 +101,7 @@ router.post('/raw/transfer-all-to-cashbox', [
 router.get('/:bankAccountId', [
   validateRequestSchema(VALIDATION_SCHEMAS.FETCH_BY_ID),
   (req, res) => {
-    return models.BankAccount.fetchBankAccountById({ ...req.params })
+    return models.BankAccount.fetchBankAccountById(req.params)
     .then(bankAccount => res.status(200).json(bankAccount))
     .catch(err => res.status(400).json(err))
   }

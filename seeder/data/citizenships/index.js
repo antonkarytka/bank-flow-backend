@@ -22,7 +22,7 @@ citizenships['Poland'] = {
   name: 'Poland'
 };
 
-﻿
+
 module.exports = {
   data: citizenships,
   model: models.Citizenship

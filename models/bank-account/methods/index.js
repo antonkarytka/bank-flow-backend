@@ -29,7 +29,7 @@ const createBankAccount = (content, options = {}) => {
 
 const fetchBankAccountById = ({ bankAccountId }, options = {}) => {
   return models.BankAccount.fetchById(
-    { id: bankAccountId },
+    bankAccountId,
     {
       ...options,
       include: [{
