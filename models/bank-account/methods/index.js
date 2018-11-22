@@ -27,6 +27,21 @@ const createBankAccount = (content, options = {}) => {
 };
 
 
+const fetchBankAccountById = ({ bankAccountId }, options = {}) => {
+  return models.BankAccount.fetchById(
+    { id: bankAccountId },
+    {
+      ...options,
+      include: [{
+        model: models.User,
+        as: 'user',
+        required: true
+      }]
+    }
+  )
+};
+
+
 const fetchCashboxAccount = (where, options = {}) => {
   return models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX, ...where }, options);
 };
@@ -34,5 +49,6 @@ const fetchCashboxAccount = (where, options = {}) => {
 
 module.exports = {
   createBankAccount,
+  fetchBankAccountById,
   fetchCashboxAccount
 };
