@@ -28,8 +28,10 @@ const createBankAccount = (content, options = {}) => {
 
 const withdraw = ({ bankAccountId, amount }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
-    return models.BankAccount.fetchById(bankAccountId, { attributes: ['amount'], transaction }, { strict: true })
-    .then(({ amount: currentAmount }) => {
+    return models.BankAccount.fetchById(bankAccountId, { attributes: ['amount', 'accountType'], transaction }, { strict: true })
+    .then(({ amount: currentAmount, accountType }) => {
+      if (accountType !== ACCOUNT_TYPE.RAW) return Promise.reject(`Unable to withdraw money from bank account (${bankAccountId}): account type must be ${ACCOUNT_TYPE.RAW}.`);
+
       const updatedAmount = currentAmount - amount;
       if (updatedAmount < 0) return Promise.reject(`Unable to withdraw money from bank account (${bankAccountId}): insufficient funds. Current amount is ${currentAmount}.`);
 
