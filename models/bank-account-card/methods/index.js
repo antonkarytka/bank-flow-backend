@@ -13,7 +13,22 @@ const createBankAccountCard = ({ pin, bankAccountId }, options = {}) => {
 };
 
 const logIn = ({ number, pin }) => {
-  return models.BankAccountCard.fetchOne({ number }, {}, { strict: true })
+  return models.BankAccountCard.fetchOne(
+    { number },
+    {
+      include: [{
+        model: models.BankAccount,
+        as: 'bankAccount',
+        required: true,
+        include: [{
+          model: models.User,
+          as: 'user',
+          required: true
+        }]
+      }]
+    },
+    { strict: true }
+  )
   .then(bankAccountCard => {
     const pinsMatch = bcrypt.compareSync(pin, bankAccountCard.pin);
 
