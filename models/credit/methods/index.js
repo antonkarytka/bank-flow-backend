@@ -1,3 +1,4 @@
+
 const Promise = require('bluebird');
 
 const models = require('../../index');
@@ -14,11 +15,13 @@ const { RELATED_TRANSITIONS } = require('./constants');
 
 const generateContractNumber = require('../../../helpers/contract-number');
 const { manipulateBankAccountAmount } = require('../../bank-account/methods/common-operations');
+const { addMoneyToCashbox } = require("../../bank-account/methods/cash-operations");
 const { withdrawMoneyFromCashbox } = require('../../bank-account/methods/cash-operations');
 const {
   transferAllToCashboxFromRaw,
   changeMonthlyPercentagePaymentCreditState,
-  changeAnnuityCreditState
+  changeAnnuityCreditState,
+  transferToRawFromCashbox
 } = require('./cash-operations');
 
 
@@ -157,7 +160,27 @@ const simulateMonthChanging = (content = {}, options = {}) => {
       changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
       changeAnnuityCreditState(content, { ...options, transaction})
     )
-    .then(() => Promise.resolve('Month has been successfully changed.'));
+    .then((results) => Promise.resolve(results));
+  });
+};
+
+
+const makeLoanPayment = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return addMoneyToCashbox(content, { ...options, transaction })
+    .then(() => {
+      console.log(content);
+      return transferToRawFromCashbox({ creditId: content.creditId }, { ...options, transaction})
+    });
+  });
+};
+
+
+const finishCredit = (content = {}, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.Credit.updateOne({ id: content.creditId },
+      { active: false },
+      { ...options, transaction });
   });
 };
 
@@ -167,5 +190,7 @@ module.exports = {
   fetchCredits,
   fetchCreditById,
   getCreditAmount,
-  simulateMonthChanging
+  simulateMonthChanging,
+  makeLoanPayment,
+  finishCredit
 };

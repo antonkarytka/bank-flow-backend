@@ -5,7 +5,7 @@ const models = require('../../models');
 const VALIDATION_SCHEMAS = require('./validation-schemas');
 
 const validateRequestSchema = require('../../helpers/http/request-schema-validator');
-const { simulateMonthChanging } = require('../../models/credit/methods');
+const { simulateMonthChanging, makeLoanPayment, finishCredit } = require('../../models/credit/methods');
 
 
 router.get('/', [
@@ -53,6 +53,26 @@ router.post('/change-month-simulation', [
     return simulateMonthChanging(req.query)
     .then(response => res.status(200).json(response))
     .catch(err => res.status(400).json(err))
+  }
+]);
+
+
+router.post('/make-loan-payment', [
+  validateRequestSchema(VALIDATION_SCHEMAS.MAKE_LOAN_PAYMENT),
+  (req, res) => {
+    return makeLoanPayment(req.body)
+      .then(response => res.status(200).json(response))
+      .catch(err => res.status(400).json(err))
+  }
+]);
+
+
+router.post('/finish-credit', [
+  validateRequestSchema(VALIDATION_SCHEMAS.FINISH_CREDIT),
+  (req, res) => {
+    return finishCredit(req.body)
+      .then(response => res.status(200).json(response))
+      .catch(err => res.status(400).json(err))
   }
 ]);
 

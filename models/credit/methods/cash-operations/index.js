@@ -62,6 +62,42 @@ const transferAllToCashboxFromRaw = ({ creditId }, options = {}) => {
 };
 
 
+/**
+ * Transfer all creditId's money to cashbox.
+ *
+ * @param creditId
+ * @param options
+ * @returns {*}
+ */
+const transferToRawFromCashbox = ({ creditId }, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return Promise.join(
+      models.BankAccount.fetchOne({ accountType: ACCOUNT_TYPE.CASHBOX }, { ...options, transaction }),
+      models.Credit.fetchById(creditId, { ...options, transaction })
+    )
+    .spread((cashboxBankAccount, credit) => {
+      return Promise.all([
+        manipulateBankAccountAmount(
+          DECREASE,
+          { id: cashboxBankAccount.id, amount: cashboxBankAccount.amount },
+          { ...options, transaction }
+        ),
+        manipulateBankAccountAmount(
+          INCREASE,
+          { id: credit.rawBankAccountId, amount: cashboxBankAccount.amount },
+          { ...options, transaction }
+        )
+      ])
+      .then(() => ({
+        senderBankAccountId: cashboxBankAccount.id,
+        receiverBankAccountId: credit.rawBankAccountId,
+        amount: cashboxBankAccount.amount
+      }))
+    })
+  })
+};
+
+
 const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.CreditProgram.fetch({ type: CREDIT_PROGRAM_TYPE.MONTHLY_PERCENTAGE_PAYMENT }, { ...options, transaction })
@@ -90,6 +126,34 @@ const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) =
           },
           { ...options, transaction }
         )
+        .then(credit => {
+          return models.BankAccount.fetchById(credit.rawBankAccountId, { ...options, transaction})
+          .then(bankAccount => {
+            if (bankAccount.amount < credit.monthlyChargeAmount) {
+              return Promise.resolve({
+                status: {
+                  error: `Can\'t get monthly charge from bank account #${bankAccount.number}.`,
+                  success: null,
+                },
+                account: bankAccount
+              })
+            } else {
+              return manipulateBankAccountAmount(
+                DECREASE,
+                { id: credit.rawBankAccountId, amount: credit.monthlyChargeAmount },
+                { ...options, transaction })
+              .then(result => {
+              return Promise.resolve({
+                status: {
+                  error: null,
+                  success: `Monthly charge from bank account #${bankAccount.number} has been successfully charged`,
+                },
+                account: bankAccount
+              });
+            });
+            }
+          });
+        });
       }));
     });
   });
@@ -125,5 +189,6 @@ const changeAnnuityCreditState = (content = {}, options = {}) => {
 module.exports = {
   transferAllToCashboxFromRaw,
   changeMonthlyPercentagePaymentCreditState,
-  changeAnnuityCreditState
+  changeAnnuityCreditState,
+  transferToRawFromCashbox
 };
