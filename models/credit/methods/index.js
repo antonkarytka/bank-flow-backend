@@ -160,7 +160,7 @@ const simulateMonthChanging = (content = {}, options = {}) => {
       changeMonthlyPercentagePaymentCreditState(content, { ...options, transaction }),
       changeAnnuityCreditState(content, { ...options, transaction})
     )
-    .then(() => Promise.resolve('Month has been successfully changed.'));
+    .then((results) => Promise.resolve(results));
   });
 };
 

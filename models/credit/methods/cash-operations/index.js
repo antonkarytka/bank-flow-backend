@@ -126,12 +126,33 @@ const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) =
           },
           { ...options, transaction }
         )
-        .tap(credit => {
-          return manipulateBankAccountAmount(
-            DECREASE,
-            { id: credit.rawBankAccountId, amount: credit.monthlyChargeAmount },
-            { ...options, transaction }
-          )
+        .then(credit => {
+          return models.BankAccount.fetchById(credit.rawBankAccountId, { ...options, transaction})
+          .then(bankAccount => {
+            if (bankAccount.amount < credit.monthlyChargeAmount) {
+              return Promise.resolve({
+                status: {
+                  error: `Can\'t get monthly charge from bank account #${bankAccount.number}.`,
+                  success: null,
+                },
+                account: bankAccount
+              })
+            } else {
+              return manipulateBankAccountAmount(
+                DECREASE,
+                { id: credit.rawBankAccountId, amount: credit.monthlyChargeAmount },
+                { ...options, transaction })
+              .then(result => {
+              return Promise.resolve({
+                status: {
+                  error: null,
+                  success: `Monthly charge from bank account #${bankAccount.number} has been successfully charged`,
+                },
+                account: bankAccount
+              });
+            });
+            }
+          });
         });
       }));
     });
