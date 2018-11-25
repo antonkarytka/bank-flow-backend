@@ -58,6 +58,7 @@ router.post('/change-month-simulation', [
 
 
 router.post('/make-loan-payment', [
+  validateRequestSchema(VALIDATION_SCHEMAS.MAKE_LOAN_PAYMENT),
   (req, res) => {
     return makeLoanPayment(req.body)
       .then(response => res.status(200).json(response))
@@ -67,6 +68,7 @@ router.post('/make-loan-payment', [
 
 
 router.post('/finish-credit', [
+  validateRequestSchema(VALIDATION_SCHEMAS.FINISH_CREDIT),
   (req, res) => {
     return finishCredit(req.body)
       .then(response => res.status(200).json(response))
