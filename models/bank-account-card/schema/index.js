@@ -5,7 +5,8 @@ const DEFINITION_OBJECT = {
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
   number: { type: DataTypes.STRING, allowNull: false },
   pin: { type: DataTypes.STRING, allowNull: false },
-  amount: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 }
+  amount: { type: DataTypes.DOUBLE, allowNull: false, defaultValue: 0 },
+  active: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true }
 };
 
 const CONFIGURATION_OBJECT = {
