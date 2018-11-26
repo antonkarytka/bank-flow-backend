@@ -52,7 +52,7 @@ router.post('/change-month-simulation', [
   (req, res) => {
     return simulateMonthChanging(req.query)
     .then(response => res.status(200).json(response))
-    .catch(err => res.status(400).json(err))
+    .catch(err => console.log(err) || res.status(400).json(err))
   }
 ]);
 

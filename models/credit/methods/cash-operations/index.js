@@ -117,17 +117,10 @@ const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) =
       .then(credits => Promise.map(credits, credit => {
         const newResidualMonthlyPaymentAmount = credit.residualMonthlyPaymentAmount - credit.creditBody;
 
-        return models.Credit.updateOne(
-          { id: credit.id },
-          {
-            monthlyChargeAmount: newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30 + credit.creditBody,
-            residualAmount: credit.residualAmount - credit.monthlyChargeAmount,
-            residualMonthlyPaymentAmount: newResidualMonthlyPaymentAmount
-          },
-          { ...options, transaction }
-        )
-        .then(credit => {
-          return models.BankAccount.fetchById(credit.rawBankAccountId, { ...options, transaction})
+        const isActive = credit.residualAmount > credit.monthlyChargeAmount;
+        const newMonthlyChargeAmount = newResidualMonthlyPaymentAmount * (credit.creditProgram.percent / 100) / DAYS_IN_YEAR * 30 + credit.creditBody
+
+        return models.BankAccount.fetchById(credit.rawBankAccountId, { ...options, transaction})
           .then(bankAccount => {
             if (bankAccount.amount < credit.monthlyChargeAmount) {
               return Promise.resolve({
@@ -141,19 +134,33 @@ const changeMonthlyPercentagePaymentCreditState = (content = {}, options = {}) =
               return manipulateBankAccountAmount(
                 DECREASE,
                 { id: credit.rawBankAccountId, amount: credit.monthlyChargeAmount },
-                { ...options, transaction })
-              .then(result => {
-              return Promise.resolve({
-                status: {
-                  error: null,
-                  success: `Monthly charge from bank account #${bankAccount.number} has been successfully charged`,
-                },
-                account: bankAccount
-              });
+                { ...options, transaction }
+              )
+                .then(result => {
+                return Promise.resolve({
+                  status: {
+                    error: null,
+                    success: `Monthly charge from bank account #${bankAccount.number} has been successfully charged`,
+                  },
+                  account: bankAccount
+                });
             });
             }
-          });
-        });
+          })
+          .then(({ status: { error } }) => {
+            if (error) return Promise.resolve();
+
+            return models.Credit.updateOne(
+              { id: credit.id },
+              {
+                monthlyChargeAmount: newMonthlyChargeAmount,
+                residualAmount: isActive ? credit.residualAmount - credit.monthlyChargeAmount : 0,
+                residualMonthlyPaymentAmount: newResidualMonthlyPaymentAmount,
+                active: isActive,
+              },
+              { ...options, transaction }
+            )
+          })
       }));
     });
   });
@@ -176,12 +183,22 @@ const changeAnnuityCreditState = (content = {}, options = {}) => {
             transaction
           }
         )
-        .then(credits => Promise.map(credits, credit => models.Credit.updateOne(
-          { id: credit.id },
-          { residualAmount: credit.residualAmount - credit.monthlyChargeAmount },
-          { ...options, transaction }
-        )));
+        .then(credits => {
+          return (
+            Promise.map(credits, credit => {
+              const isActive = credit.residualAmount > credit.monthlyChargeAmount;
+              console.log(isActive, credit.residualAmount, credit.monthlyChargeAmount);
+
+              return (
+                models.Credit.updateOne(
+                  { id: credit.id },
+                  { residualAmount: isActive ? credit.residualAmount - credit.monthlyChargeAmount : 0, active: isActive },
+                  { ...options, transaction }
+              ));
+            })
+          );
       });
+    });
   });
 };
 
