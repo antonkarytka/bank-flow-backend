@@ -30,15 +30,23 @@ const logIn = ({ number, pin }) => {
     { strict: true }
   )
   .then(bankAccountCard => {
-    const pinsMatch = bcrypt.compareSync(pin, bankAccountCard.pin);
+    if (!bankAccountCard.active) return Promise.reject('cardDeactivated');
 
+    const pinsMatch = bcrypt.compareSync(pin, bankAccountCard.pin);
     if (pinsMatch) return bankAccountCard;
     else return Promise.reject('Provided password does not match the real one.');
   });
 };
 
+const setActive = ({ bankAccountCardId, active = true }, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.BankAccountCard.updateOne({ id: bankAccountCardId }, { active }, { ...options, transaction })
+  })
+};
+
 
 module.exports = {
   createBankAccountCard,
-  logIn
+  logIn,
+  setActive
 };
