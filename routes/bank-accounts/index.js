@@ -107,12 +107,24 @@ router.get('/:bankAccountId', [
   }
 ]);
 
+router.post('/:bankAccountId/top-up', [
+  validateRequestSchema(VALIDATION_SCHEMAS.TOP_UP),
+  (req, res) => {
+    return models.BankAccount.topUp({ ...req.params, ...req.body })
+    .then(result => res.status(200).json(result))
+    .catch(err => res.status(400).json(err))
+  }
+]);
+
 router.post('/:bankAccountId/withdraw', [
   validateRequestSchema(VALIDATION_SCHEMAS.WITHDRAW),
   (req, res) => {
     return models.BankAccount.withdraw({ ...req.params, ...req.body })
     .then(result => res.status(200).json(result))
-    .catch(err => res.status(400).json(err))
+    .catch(err => {
+      console.log(err);
+      res.status(400).json(err)
+    })
   }
 ]);
 

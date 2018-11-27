@@ -2,6 +2,7 @@ module.exports = {
   ADD_MONEY_TO_CASHBOX: require('./add-money-to-cashbox'),
   FETCH_BY_ID: require('./fetch-by-id'),
   FETCH_CASHBOX: require('./fetch-cashbox'),
+  TOP_UP: require('./top-up'),
   TRANSFER_ALL_TO_CASHBOX_FROM_PERCENTAGE: require('./transfer-all-to-cashbox-from-percentage'),
   TRANSFER_ALL_TO_CASHBOX_FROM_RAW: require('./transfer-all-to-cashbox-from-raw'),
   TRANSFER_ALL_TO_RAW_FROM_DEVELOPMENT_FUND: require('./transfer-all-to-raw-from-development-fund'),

@@ -10,33 +10,43 @@ const {
 } = require('../../../bank-account/constants');
 
 
-const manipulateBankAccountAmount = (action, content, options = {}) => {
+const manipulateBankAccountAmount = (action, content, { clean = false, ...options } = {}) => {
   if (!ALLOWED_AMOUNT_ACTIONS.includes(action)) return Promise.reject(`Could not manipulate bank account's amount. Unrecognized action: ${action}`);
 
   return sequelize.continueTransaction(options, transaction => {
-    return models.BankAccount.fetchById(content.id, { ...options, transaction })
+    return models.BankAccount.fetchById(content.id, { ...options, transaction }, { strict: true })
     .then(bankAccount => {
-      const updatedContent = {};
-      if (action === AMOUNT_ACTION.INCREASE) {
-        updatedContent.amount = bankAccount.amount + content.amount
-      } else if (action === AMOUNT_ACTION.DECREASE) {
-        updatedContent.amount = bankAccount.amount - content.amount
-      }
-      updateBankAccountContent({ content, updated: updatedContent, bankAccount, amountAction: action });
+      const updated = {};
 
-      return models.BankAccount.updateOne({ id: content.id }, updatedContent, { ...options, transaction });
+      if (action === AMOUNT_ACTION.INCREASE) updated.amount = bankAccount.amount + content.amount;
+      else if (action === AMOUNT_ACTION.DECREASE) {
+        if (bankAccount.amount < content.amount) return Promise.reject(`Could not withdraw money from bank account (${bankAccount.id}): insufficient funds.`);
+        updated.amount = bankAccount.amount - content.amount;
+      }
+
+      if (!clean) {
+        const updatedDebitCredit = recalculateDebitCredit({ amount: content.amount, amountAction: action, bankAccount });
+        Object.assign(updated, updatedDebitCredit);
+      }
+
+      return models.BankAccount.updateOne({ id: content.id }, updated, { ...options, transaction });
     });
   });
 };
 
 
-function updateBankAccountContent({ content, updated, bankAccount, amountAction }) {
+function recalculateDebitCredit({ amount, amountAction, bankAccount  }) {
+  const updated = {
+    credit: 0,
+    debit: 0
+  };
+
   if (bankAccount.activity === ACTIVITY.ACTIVE) {
-    if (amountAction === AMOUNT_ACTION.INCREASE) updated.debit = bankAccount.debit + content.amount;
-    if (amountAction === AMOUNT_ACTION.DECREASE) updated.credit = bankAccount.credit + content.amount;
+    if (amountAction === AMOUNT_ACTION.INCREASE) updated.debit = bankAccount.debit + amount;
+    if (amountAction === AMOUNT_ACTION.DECREASE) updated.credit = bankAccount.credit + amount;
   } else if (bankAccount.activity === ACTIVITY.PASSIVE) {
-    if (amountAction === AMOUNT_ACTION.INCREASE) updated.credit = bankAccount.credit + content.amount;
-    if (amountAction === AMOUNT_ACTION.DECREASE) updated.debit = bankAccount.debit + content.amount;
+    if (amountAction === AMOUNT_ACTION.INCREASE) updated.credit = bankAccount.credit + amount;
+    if (amountAction === AMOUNT_ACTION.DECREASE) updated.debit = bankAccount.debit + amount;
   }
 
   return updated;

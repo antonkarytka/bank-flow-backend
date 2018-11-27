@@ -1,7 +1,8 @@
 const models = require('../../index');
 const { sequelize } = models;
-const { ACCOUNT_TYPE } = require('../constants');
+const { ACCOUNT_TYPE, AMOUNT_ACTION: { INCREASE, DECREASE } } = require('../constants');
 
+const { manipulateBankAccountAmount } = require('./common-operations');
 const { generateBankAccountNumber } = require('./helpers');
 
 const createBankAccount = (content, options = {}) => {
@@ -26,18 +27,12 @@ const createBankAccount = (content, options = {}) => {
   });
 };
 
+const topUp = ({ bankAccountId, amount }, options = {}) => {
+  return manipulateBankAccountAmount(INCREASE, { id: bankAccountId, amount }, { clean: true, ...options });
+};
+
 const withdraw = ({ bankAccountId, amount }, options = {}) => {
-  return sequelize.continueTransaction(options, transaction => {
-    return models.BankAccount.fetchById(bankAccountId, { attributes: ['amount', 'accountType'], transaction }, { strict: true })
-    .then(({ amount: currentAmount, accountType }) => {
-      if (accountType !== ACCOUNT_TYPE.RAW) return Promise.reject(`Unable to withdraw money from bank account (${bankAccountId}): account type must be ${ACCOUNT_TYPE.RAW}.`);
-
-      const updatedAmount = currentAmount - amount;
-      if (updatedAmount < 0) return Promise.reject(`Unable to withdraw money from bank account (${bankAccountId}): insufficient funds. Current amount is ${currentAmount}.`);
-
-      return models.BankAccount.updateOne({ id: bankAccountId }, { amount: updatedAmount }, { transaction })
-    })
-  })
+  return manipulateBankAccountAmount(DECREASE, { id: bankAccountId, amount }, { clean: true, ...options });
 };
 
 const fetchBankAccountById = ({ bankAccountId }, options = {}) => {
@@ -61,5 +56,6 @@ module.exports = {
   createBankAccount,
   fetchBankAccountById,
   fetchCashboxAccount,
+  topUp,
   withdraw
 };
