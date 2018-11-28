@@ -41,12 +41,19 @@ const logIn = ({ number, pin }) => {
 const setActive = ({ bankAccountCardId, active = true }, options = {}) => {
   return sequelize.continueTransaction(options, transaction => {
     return models.BankAccountCard.updateOne({ id: bankAccountCardId }, { active }, { ...options, transaction })
-  })
+  });
+};
+
+const deactivateByNumber = ({ number }, options = {}) => {
+  return sequelize.continueTransaction(options, transaction => {
+    return models.BankAccountCard.updateOne({ number }, { active: false }, { ...options, transaction })
+  });
 };
 
 
 module.exports = {
   createBankAccountCard,
   logIn,
-  setActive
+  setActive,
+  deactivateByNumber
 };

@@ -39,6 +39,15 @@ router.post('/:bankAccountCardId/deactivate', [
   }
 ]);
 
+router.post('/deactivate', [
+  validateRequestSchema(VALIDATION_SCHEMAS.DEACTIVATE_BY_NUMBER),
+  (req, res) => {
+    return models.BankAccountCard.deactivateByNumber(req.body)
+    .then(result => res.status(200).json(result))
+    .catch(err => res.status(400).json(err))
+  }
+]);
+
 router.post('/', [
   validateRequestSchema(VALIDATION_SCHEMAS.CREATE_ONE),
   (req, res) => {
