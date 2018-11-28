@@ -28,10 +28,12 @@ const createBankAccount = (content, options = {}) => {
 };
 
 const topUp = ({ bankAccountId, amount }, options = {}) => {
+  if (amount <= 0) return Promise.reject(`Amount must be a positive numeric.`);
   return manipulateBankAccountAmount(INCREASE, { id: bankAccountId, amount }, { clean: true, ...options });
 };
 
 const withdraw = ({ bankAccountId, amount }, options = {}) => {
+  if (amount <= 0) return Promise.reject(`Amount must be a positive numeric.`);
   return manipulateBankAccountAmount(DECREASE, { id: bankAccountId, amount }, { clean: true, ...options });
 };
 
